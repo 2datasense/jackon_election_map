@@ -78,7 +78,7 @@ a{color:#024172}a:hover{color:#01294a}
 .jx .stat{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
 .jx .stat strong{text-align:right}
 .jx .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:4px 0 16px}
-@media(max-width:720px){.jx .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.jx .mapbox{height:62vh;min-height:420px}.jx .pad{padding:15px 12px!important}.jx h1{font-size:23px!important}}
+@media(max-width:720px){.jx .chip{padding:3px 6px;font-size:11px}.jx .zb{width:36px;height:36px;font-size:16px}.jx .alltoggle{display:none!important}.jx .lbl{font-size:11px}.jx .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.jx .mapbox{height:62vh;min-height:420px}.jx .pad{padding:15px 12px!important}.jx h1{font-size:23px!important}}
 </style>
 
 </head>
@@ -181,7 +181,7 @@ a{color:#024172}a:hover{color:#01294a}
 <div style="padding: 6px 15px; background: #f8fafc; border-bottom: 1px solid #dfe6ee; color: #5b6673; font-size: 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; justify-content: space-between"><sc-if value="{{chg}}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #1b2430; width: 100%"><span style="width: 14px; height: 14px; border-radius: 3px; background: #A85610"></span>Went down<span style="width: 14px; height: 14px; border-radius: 3px; background: #024172; margin-left: 10px"></span>Went up<span style="font-weight: 400; color: #5b6673; margin-left: 10px">Labels show the change in {{changeUnit}}, {{baseLabel}} → {{year}}</span></span></sc-if>
 <sc-if value="{{isEnd}}" hint-placeholder-val="{{ false }}"><span style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; width: 100%; color: #1b2430"><b>{{endLegendTitle}}</b><sc-for list="{{endLegend}}" as="lg" hint-placeholder-count="7"><span style="display: inline-flex; align-items: center; gap: 5px"><span class="swatch" style="{{lg.sw}}"></span>{{lg.t}}</span></sc-for></span></sc-if>
 <span style="font-weight: 700; color: #1b2430">{{labelKey}}</span>
-<label style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #1b2430; min-height: 32px"><input type="checkbox" checked="{{allLabels}}" onChange="{{toggleAll}}">Show every district label</label></div>
+<label class="alltoggle" style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #1b2430; min-height: 32px"><input type="checkbox" checked="{{allLabels}}" onChange="{{toggleAll}}">Show every district label</label></div>
 <sc-if value="{{h2h}}" hint-placeholder-val="{{ false }}">
 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding: 12px 16px; border-bottom: 1px solid #dfe6ee; background: #ffffff">
 <div style="display: flex; align-items: center; gap: 10px">
@@ -452,6 +452,7 @@ constructor(...args){
  super(...args);
  this.state=Object.assign({},DEFAULTS,{fields:Object.assign({},DEFAULTS.fields),vb:null,W:0,H:0,dragging:false});
  this.drag=null;this.mapEl=null;this.ro=null;
+ try{if(window.innerWidth<640)this.state.kpiOpen=false}catch(e){}
  this.setMap=el=>{
   if(this.mapEl===el)return;
   if(this.mapEl){this.mapEl.removeEventListener('wheel',this.onWheel);this.ro&&this.ro.disconnect()}
@@ -538,7 +539,7 @@ renderVals(){
  const endLegend=END_BINS.map((b,i)=>({t:END_LEG[i],sw:{background:b[1]}}));
  const endTip=id=>{if(chgEnd){const v=metric(id);return v==null?'no comparison':'Endorsed margin '+(v>=0?'up ':'down ')+Math.abs(v).toFixed(1)+' pts vs '+eBase}const r=endOf(id);return r?'Endorsed '+pct(r.e)+' · Opposed '+pct(r.o)+(r.hasN?' · Neutral '+pct(r.n):''):'no race'};
  const h2hFill=id=>{const m=(pc(id,cand)||0)-(pc(id,second)||0),t=0.18+0.82*Math.abs(m)/maxLead;if(Math.abs(m)<0.05)return '#d5dbe2';return m>0?ramp(t,[228,238,248],[0,78,140]):ramp(t,[252,238,224],[168,86,16])};
- const h2hTip=id=>nameA+' '+pct(pc(id,cand))+' vs '+nameB+' '+pct(pc(id,second));
+ const h2hTip=id=>{const A=pc(id,cand)||0,B=pc(id,second)||0;return (A>=B?nameA:nameB)+' won by '+Math.abs(A-B).toFixed(1)+' pts ('+nameA+' '+pct(A)+', '+nameB+' '+pct(B)+')'};
  const absMax=Math.max(0.1,...IDS.map(metric).filter(v=>v!=null).map(Math.abs));
  const divFill=v=>v==null?'#d5dbe2':Math.abs(v)<0.05?'#eef1f4':v>0?ramp(0.15+0.85*v/absMax,[228,238,248],[2,65,114]):ramp(0.15+0.85*-v/absMax,[252,238,224],[168,86,16]);
  // Map
@@ -551,11 +552,11 @@ renderVals(){
  if(isEnd&&office){nameKey=[{sw:{background:COLOR_E},t:'Endorsed: '+namesOf('E')},{sw:{background:COLOR_O},t:'Opposed: '+namesOf('O')}];if(namesOf('N')&&!exN)nameKey.push({sw:{background:COLOR_N},t:'Neutral: '+namesOf('N')});if(chgEnd)nameKey.push({sw:{background:'transparent'},t:'Compared with '+eBase+(eBaseOffice!==office?' '+eBaseOffice:'')})}
  else if(cmp&&second)nameKey=[{sw:{background:COLOR_A},t:cname(cand)},{sw:{background:COLOR_B},t:cname(second)}];
  const FIELD_NAMES={district:'district #',registered:'registered',ballots:'voted',turnout:'turnout',regGrowth:'reg. change'};
- const mainName=cmp?'margin (pts), '+nameA+' minus '+nameB:chgEnd?'change in endorsed margin (pts)':isEnd?'endorsed margin (pts)':chg?'change':'value';
+ const mainName=cmp?'district winner and winning margin (pts)':chgEnd?'change in endorsed margin (pts)':isEnd?'endorsed margin (pts)':chg?'change':'value';
  const labelKey='Labels: '+[s.fields.support?mainName:null].concat(Object.keys(FIELD_NAMES).filter(k=>s.fields[k]).map(k=>FIELD_NAMES[k])).filter(Boolean).join(' · ');
  const roads=ROADS.map(r=>({cls:'road'+r.c,p:r.p}));
  if(s.view==='map'&&vb&&s.W){
-  const f=s.fields,all=s.allLabels;
+  const f=s.fields,all=s.allLabels&&s.W>=640;
   // Each label is one row: the main number first (bold), then any extra fields, small. The legend line names the order.
   const kfmt=v=>v>=1000?(v/1000).toFixed(1)+'k':String(Math.round(v));
   const occ=[],items=[];
@@ -566,9 +567,9 @@ renderVals(){
    const x=(GEO[id].x-vb.x)/vb.w*s.W,y=(GEO[id].y-vb.y)/vb.h*s.H;
    const d=cur(id),lines=[];
    if(f.support){
-    if(cmp){const A=pc(id,cand)||0,B=pc(id,second)||0;lines.push({cls:'lead '+(A>=B?'la':'lb'),text:(A>=B?'+':'−')+Math.round(Math.abs(A-B))})}
+    if(cmp){const A=pc(id,cand)||0,B=pc(id,second)||0,mg=Math.round(Math.abs(A-B));lines.push({cls:'lead '+(A>=B?'la':'lb'),text:mg===0?'Tie':(A>=B?nameA:nameB)+' +'+mg})}
     else if(chgEnd){const v=metric(id);lines.push({cls:'lead '+(v==null?'':v>=0?'le':'lo'),text:v==null?'—':(v>=0?'+':'−')+Math.round(Math.abs(v))})}
-    else if(isEnd){const q=endOf(id);lines.push(q?{cls:'lead '+(q.m>=0?'le':'lo'),text:(q.m>=0?'+':'−')+Math.round(Math.abs(q.m))}:{cls:'sub',text:'no race'})}
+    else if(isEnd){const q=endOf(id);lines.push(q?{cls:'lead '+(q.m>=0?'le':'lo'),text:Math.round(Math.abs(q.m))===0?'0':(q.m>=0?'+':'−')+Math.round(Math.abs(q.m))}:{cls:'sub',text:'no race'})}
     else if(chg){const v=metric(id);lines.push({cls:'lead',text:v==null?'—':(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)})}
     else lines.push({cls:'lead',text:asText(metric(id))});
    }
