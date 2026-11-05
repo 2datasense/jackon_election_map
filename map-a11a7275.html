@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jackson Voting Explorer</title>
+<!-- Microsoft Clarity (project z8kaxoujlz) -->
+<script>
+  (function (w, d, projectId) {
+    w.clarity = w.clarity || function () { (w.clarity.q = w.clarity.q || []).push(arguments); };
+    var s = d.createElement("script"); s.async = true; s.src = "https://www.clarity.ms/tag/" + projectId;
+    d.head.appendChild(s);
+  })(window, document, "z8kaxoujlz");
+</script>
+
+<style>
+body{margin:0;background:#fff}
+a{color:#024172}a:hover{color:#01294a}
+.jx{--ink:#1b2430;--brand:#024172;--accent:#006EC3;--wash:#f4f7fb;--line:#dfe6ee;--dim:#5b6673;font:15px/1.45 system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink);background:#fff;min-height:100vh}
+.jx *{box-sizing:border-box}.jx button,.jx select,.jx input{font:inherit}.jx button{cursor:pointer}
+.jx button:focus-visible,.jx select:focus-visible,.jx input:focus-visible{outline:3px solid #7fb3e0;outline-offset:2px}
+.jx select{width:100%;min-height:42px;border:1px solid #c5cfdb;border-radius:7px;background:#fff;padding:7px 10px;color:var(--ink)}
+.jx input[type=checkbox]{accent-color:var(--brand)}
+.jx .lbl{font-size:12px;font-weight:750;color:#46525f}
+.jx .sw{background:#fff;border:1px solid #cfd8e3;padding:9px 15px;border-radius:7px;font-weight:700;color:var(--ink)}
+.jx .sw[aria-pressed=true]{background:var(--brand);color:#fff;border-color:var(--brand)}
+.jx .seg{background:#fff;border:0;border-right:1px solid #c5cfdb;padding:0 14px;min-height:42px;font-weight:700;color:#1b2430}.jx .seg:last-child{border-right:0}.jx .seg[aria-pressed=true]{background:#024172;color:#fff}
+.jx .reset{height:42px;background:#fff;border:1px solid #a9b9cc;color:#024172;border-radius:7px;padding:6px 16px;font-weight:700}
+.jx .reset:hover{background:#eef4fa}
+.jx .chip{font-size:12px;display:flex;gap:4px;align-items:center;padding:5px 7px;border-radius:6px;background:var(--wash)}
+.jx .mapbox{position:relative;overflow:hidden;touch-action:none;cursor:grab;user-select:none;height:min(68vh,740px);min-height:500px;background:#f3f5f8}
+.jx .mapbox.dragging{cursor:grabbing}
+.jx .district{stroke:#fff;stroke-width:1.5;vector-effect:non-scaling-stroke;fill-opacity:.85;fill-rule:evenodd;cursor:pointer;transition:fill .2s}
+.jx .district:hover{stroke:#024172;stroke-width:2.5;fill-opacity:1}
+.jx .district:focus{outline:none}.jx .district:focus-visible{stroke:#7fb3e0;stroke-width:3}
+.jx .maptip{position:absolute;font-size:12px;line-height:1.2;text-align:center;padding:5px 7px;box-shadow:0 2px 9px #0002;border:1px solid #c9d3de;border-radius:7px;background:#fff;color:#1b2430;pointer-events:none}
+.jx .maptip .big{font-size:15px;color:#024172;display:block;line-height:1.15;margin:1px 0;font-weight:700}
+.jx .maptip .small{display:block;font-size:10px;color:#5b6673}
+.jx .maptip .sec{display:block;color:#006EC3;font-weight:700;font-size:11px}
+.jx .trow{display:grid;grid-template-columns:minmax(100px,1.1fr) minmax(90px,1.4fr) minmax(190px,2fr) minmax(80px,1fr) minmax(120px,1.4fr) minmax(90px,1fr);align-items:center;gap:12px;text-align:left;background:#ffffff;border:1px solid #dfe6ee;border-radius:8px;padding:8px 12px;min-height:44px;font-size:13px;color:#1b2430}
+.jx .trow:hover{background:#f4f7fb}.jx .trow.on{background:#eef4fa;border-color:#024172}
+.jx .tr-bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#e9eef4}
+.jx .tr-pcts{display:flex;gap:10px;font-weight:700}
+.jx .tr-lead{font-weight:800}.jx .pos{color:#01665e}.jx .neg{color:#8c510a}.jx .tr-chg{font-weight:700}
+.jx .maptip.row{display:flex;align-items:baseline;justify-content:center;gap:6px;white-space:nowrap;padding:3px 6px}.jx .maptip .sub{font-size:11px;font-weight:600;color:#46525f}
+.jx .maptip .lead{display:inline;font-size:13px;font-weight:800;line-height:1.2}.jx .maptip .la{color:#005a9e}.jx .maptip .lb{color:#9a5410}.jx .maptip .le{color:#01665e}.jx .maptip .lo{color:#8c510a}
+.jx .maptip .big.eup{color:#01665e}.jx .maptip .big.edown{color:#8c510a}
+@media(max-width:900px){.jx .trow{grid-template-columns:1fr 1fr}.jx .tr-bar{grid-column:1/-1;order:-1}}
+.jx .trendbtn{border:1px solid #c5cfdb;border-radius:8px;margin-right:8px}
+.jx .swatch{width:14px;height:14px;border-radius:3px;display:inline-block}
+.jx .maptip .pe,.jx .maptip .po,.jx .maptip .pn{display:flex;justify-content:space-between;gap:6px;font-size:12px;line-height:1.3}
+.jx .maptip .pe{color:#01665e}.jx .maptip .po{color:#8c510a}.jx .maptip .pn{color:#5b6673}
+.jx .maptip.compact .pe,.jx .maptip.compact .po,.jx .maptip.compact .pn{font-size:11px;line-height:1.2}
+.jx .maptip .pa,.jx .maptip .pb{display:flex;justify-content:space-between;gap:6px;font-size:12px;line-height:1.3}
+.jx .maptip .pa{color:#005a9e}.jx .maptip .pb{color:#9a5410}
+.jx .maptip .lead{font-weight:800}
+.jx .hbar{display:flex;height:6px;margin-top:4px;border-radius:3px;overflow:hidden;background:#e9eef4}
+.jx .road0,.jx .road1{fill:none;stroke:#ffffff;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+.jx .road0{stroke-width:2.6;opacity:.95}.jx .road1{stroke-width:1.4;opacity:.8}
+.jx .roadname{position:absolute;font-size:11px;font-weight:600;color:#1b2430;white-space:nowrap;letter-spacing:.2px;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;transform-origin:center center}
+.jx .maptip.compact{font-size:11px;line-height:1.15;padding:3px 5px;border-radius:6px;box-shadow:0 1px 5px #0002}
+.jx .maptip.compact .big{font-size:13px;margin:0}.jx .maptip.compact .small{font-size:9.5px}
+.jx .maptip.compact .pa,.jx .maptip.compact .pb{font-size:11px;line-height:1.2}.jx .maptip.compact .hbar{height:5px;margin-top:3px}
+.jx .leader{stroke:#1b2430;stroke-width:1;opacity:.6}.jx .anchor{fill:#1b2430;stroke:#fff;stroke-width:1.5}
+.jx .zb{width:44px;height:44px;border:1px solid #c5cfdb;background:#fff;border-radius:7px;font-size:18px;font-weight:700;color:#024172;line-height:1}
+.jx .zb:hover{background:#eef4fa}
+.jx .tablebox{overflow:auto;max-height:610px}
+.jx table{border-collapse:collapse;width:100%;min-width:720px}
+.jx th{position:sticky;top:0;background:var(--wash);color:#46525f;font-size:12px;text-align:right;padding:0;white-space:nowrap;border-bottom:1px solid var(--line)}
+.jx th button{all:unset;cursor:pointer;display:block;width:100%;padding:13px 12px;box-sizing:border-box;text-align:inherit;font-weight:700}
+.jx td{text-align:right;padding:12px;border-bottom:1px solid #e9eef4}
+.jx th:first-child,.jx td:first-child{text-align:left}
+.jx tbody tr{cursor:pointer}.jx tbody tr:hover{background:#eef4fa}
+.jx .num{font-weight:800;color:var(--brand)}
+.jx .drawer{position:fixed;z-index:3000;top:0;right:0;bottom:0;width:min(440px,100vw);background:#fff;border-left:1px solid var(--line);box-shadow:-9px 0 38px #0b1d3326;padding:19px 22px;overflow:auto}
+.jx .drawer details{border:1px solid var(--line);border-radius:7px;margin:8px 0;padding:9px}
+.jx .drawer summary{cursor:pointer;font-weight:750}
+.jx .stat{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.jx .stat strong{text-align:right}
+.jx .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:4px 0 16px}
+@media(max-width:720px){.jx .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.jx .mapbox{height:62vh;min-height:420px}.jx .pad{padding:15px 12px!important}.jx h1{font-size:23px!important}}
+</style>
+
+</head>
+<body>
+<div id="app"></div>
+<script type="text/x-dc-template" id="tpl">
+
+<div class="jx">
+<header style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dfe6ee; padding: 13px 24px; gap: 12px">
+<b style="font-size: 21px; color: #024172">DataSense</b>
+<small style="color: #5b6673">Jackson Township · Election results</small>
+</header>
+<main class="pad" style="max-width: 1540px; margin: 0 auto; padding: 22px 24px">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+<h1 style="margin: 0 0 12px; font-size: 29px; letter-spacing: -0.7px">Jackson voting districts</h1>
+<small style="color: #5b6673">34 districts · 2022–2026</small>
+</div>
+<section aria-label="Choose what to show" style="border: 1px solid #dfe6ee; padding: 15px 17px; border-radius: 12px; background: #f4f7fb; display: grid; gap: 12px">
+<div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end">
+<div style="display: grid; gap: 5px; flex: 1; min-width: 235px">
+<label class="lbl" for="jx-metric">1 · What to show</label>
+<select id="jx-metric" value="{{metric}}" onChange="{{onMetric}}"><option value="turnout">Turnout %</option><option value="registered">Registered voters</option><option value="ballots">Ballots cast</option><option value="candidate">Candidate support %</option><option value="endorse">Communal activist endorsements</option><option value="registrationGrowth">Registration growth % vs comparison year</option><option value="ballotGrowth">Ballots cast growth % vs comparison year</option><option value="growthGap">Ballot growth − registration growth</option></select>
+</div>
+<div style="display: grid; gap: 5px; min-width: 130px">
+<label class="lbl" for="jx-year">2 · Election year</label>
+<select id="jx-year" value="{{year}}" onChange="{{onYear}}"><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option></select>
+</div>
+<sc-if value="{{showOffice}}" hint-placeholder-val="{{ false }}">
+<div style="display: grid; gap: 5px; min-width: 130px">
+<label class="lbl" for="jx-office">Office</label>
+<select id="jx-office" value="{{office}}" onChange="{{onOffice}}">
+<sc-for list="{{officeOptions}}" as="o" hint-placeholder-count="2"><option value="{{o.v}}">{{o.v}}</option></sc-for>
+</select>
+</div>
+</sc-if>
+<sc-if value="{{showChangeOpt}}" hint-placeholder-val="{{ true }}">
+<div style="display: grid; gap: 5px">
+<span class="lbl" id="jx-view">3 · View</span>
+<div role="group" aria-labelledby="jx-view" style="display: flex; border: 1px solid #c5cfdb; border-radius: 8px; overflow: hidden; background: #ffffff">
+<button class="seg" type="button" aria-pressed="{{valuesPressed}}" onClick="{{showValues}}">This year only</button>
+<button class="seg" type="button" aria-pressed="{{changePressed}}" onClick="{{showChangeMode}}">Change between years</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{isEnd}}" hint-placeholder-val="{{ false }}">
+<label style="display: flex; align-items: center; gap: 7px; min-height: 42px; font-weight: 650"><input type="checkbox" checked="{{inclNeutral}}" onChange="{{toggleNeutral}}">Include neutral votes</label>
+</sc-if>
+<sc-if value="{{showBase}}" hint-placeholder-val="{{ false }}">
+<div style="display: grid; gap: 5px; min-width: 170px">
+<label class="lbl" for="jx-base">{{baseStep}} · Compare to</label>
+<select id="jx-base" value="{{base}}" onChange="{{onBase}}">
+<sc-for list="{{baseOptions}}" as="o" hint-placeholder-count="5"><option value="{{o.v}}">{{o.t}}</option></sc-for>
+</select>
+</div>
+</sc-if>
+<button class="reset" type="button" onClick="{{onReset}}" style="margin-left: auto">↺ Reset</button>
+</div>
+<sc-if value="{{isCand}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end">
+<div style="display: grid; gap: 5px; flex: 1; min-width: 235px">
+<label class="lbl" for="jx-cand">Candidate</label>
+<select id="jx-cand" value="{{cand}}" onChange="{{onCand}}">
+<sc-for list="{{candOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.v}}">{{o.t}}</option></sc-for>
+</select>
+</div>
+<label style="display: flex; align-items: center; gap: 7px; min-height: 42px; font-weight: 650"><input type="checkbox" checked="{{compare}}" onChange="{{onCompare}}">Show second candidate</label>
+<sc-if value="{{compare}}" hint-placeholder-val="{{ false }}">
+<div style="display: grid; gap: 5px; flex: 1; min-width: 235px">
+<label class="lbl" for="jx-second">Second candidate</label>
+<select id="jx-second" value="{{second}}" onChange="{{onSecond}}">
+<sc-for list="{{secondOptions}}" as="o" hint-placeholder-count="3"><option value="{{o.v}}">{{o.t}}</option></sc-for>
+</select>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</section>
+<div style="display: flex; justify-content: flex-end; margin: 8px 0 0">
+<button type="button" onClick="{{toggleKpi}}" aria-expanded="{{kpiOpen}}" style="background: none; border: 0; color: #006EC3; font-weight: 700; font-size: 13px; padding: 8px 4px; min-height: 36px">{{kpiBtn}}</button>
+</div>
+<sc-if value="{{kpiOpen}}" hint-placeholder-val="{{ true }}">
+<div class="kpis">
+<div style="border: 1px solid #dfe6ee; padding: 13px 16px; border-radius: 9px"><small style="display: block; color: #5b6673">Registered</small><strong style="font-size: 26px; color: #024172">{{kreg}}</strong></div>
+<div style="border: 1px solid #dfe6ee; padding: 13px 16px; border-radius: 9px"><small style="display: block; color: #5b6673">Ballots cast</small><strong style="font-size: 26px; color: #024172">{{kballots}}</strong></div>
+<div style="border: 1px solid #dfe6ee; padding: 13px 16px; border-radius: 9px"><small style="display: block; color: #5b6673">Turnout</small><strong style="font-size: 26px; color: #024172">{{kturnout}}</strong></div>
+<div style="border: 1px solid #dfe6ee; padding: 13px 16px; border-radius: 9px"><small style="display: block; color: #5b6673">Change in registration · vs {{baseLabel}}</small><strong style="font-size: 26px; color: #024172">{{kgrowth}}</strong></div>
+</div>
+</sc-if>
+<section style="border: 1px solid #dfe6ee; border-radius: 11px; overflow: hidden">
+<div style="padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid #dfe6ee; flex-wrap: wrap">
+<div><strong style="font-size: 16px">{{viewTitle}}</strong></div>
+<div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap">
+<div role="group" aria-label="Map or table" style="display: flex; border: 1px solid #c5cfdb; border-radius: 8px; overflow: hidden; margin-right: 8px"><button class="seg" type="button" aria-pressed="{{mapPressed}}" onClick="{{showMap}}">Map</button><button class="seg" type="button" aria-pressed="{{tablePressed}}" onClick="{{showTable}}">Table</button></div>
+<sc-if value="{{isEnd}}" hint-placeholder-val="{{ false }}"><button class="seg trendbtn" type="button" aria-pressed="{{trendPressed}}" onClick="{{toggleTrend}}">{{trendBtn}}</button></sc-if>
+<span class="lbl">Show on map:</span>
+<sc-for list="{{fieldList}}" as="f" hint-placeholder-count="6"><label class="chip"><input type="checkbox" checked="{{f.on}}" onChange="{{f.toggle}}">{{f.label}}</label></sc-for>
+</div>
+</div>
+<sc-if value="{{isMap}}" hint-placeholder-val="{{ true }}">
+<div style="padding: 6px 15px; background: #f8fafc; border-bottom: 1px solid #dfe6ee; color: #5b6673; font-size: 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; justify-content: space-between"><sc-if value="{{chg}}" hint-placeholder-val="{{ false }}"><span style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #1b2430; width: 100%"><span style="width: 14px; height: 14px; border-radius: 3px; background: #A85610"></span>Went down<span style="width: 14px; height: 14px; border-radius: 3px; background: #024172; margin-left: 10px"></span>Went up<span style="font-weight: 400; color: #5b6673; margin-left: 10px">Labels show the change in {{changeUnit}}, {{baseLabel}} → {{year}}</span></span></sc-if>
+<sc-if value="{{isEnd}}" hint-placeholder-val="{{ false }}"><span style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; width: 100%; color: #1b2430"><b>{{endLegendTitle}}</b><sc-for list="{{endLegend}}" as="lg" hint-placeholder-count="7"><span style="display: inline-flex; align-items: center; gap: 5px"><span class="swatch" style="{{lg.sw}}"></span>{{lg.t}}</span></sc-for></span></sc-if>
+<span style="font-weight: 700; color: #1b2430">{{labelKey}}</span>
+<label style="display: flex; align-items: center; gap: 6px; font-weight: 700; color: #1b2430; min-height: 32px"><input type="checkbox" checked="{{allLabels}}" onChange="{{toggleAll}}">Show every district label</label></div>
+<sc-if value="{{h2h}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding: 12px 16px; border-bottom: 1px solid #dfe6ee; background: #ffffff">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="{{h2h.aSw}}" class="swatch"></span>
+<div><div style="font-weight: 800; font-size: 15px">{{h2h.aName}}</div><div style="font-size: 12px; color: #5b6673">{{h2h.aPct}} overall · won {{h2h.aWins}} districts</div></div>
+</div>
+<div style="flex: 1; min-width: 200px; max-width: 420px">
+<div style="display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: #e9eef4">
+<div style="{{h2h.aBar}}"></div><div style="flex: 1"></div><div style="{{h2h.bBar}}"></div>
+</div>
+<div style="font-size: 11px; color: #5b6673; margin-top: 4px; text-align: center">{{h2h.note}}</div>
+</div>
+<div style="display: flex; align-items: center; gap: 10px">
+<div style="text-align: right"><div style="font-weight: 800; font-size: 15px">{{h2h.bName}}</div><div style="font-size: 12px; color: #5b6673">{{h2h.bPct}} overall · won {{h2h.bWins}} districts</div></div>
+<span style="{{h2h.bSw}}" class="swatch"></span>
+</div>
+<div style="font-size: 11px; color: #5b6673; width: 100%">{{h2h.lead}}</div>
+</div>
+</sc-if>
+<div class="{{mapClass}}" ref="{{setMap}}" onPointerDown="{{onDown}}">
+<svg viewBox="{{viewBox}}" preserveAspectRatio="none" role="group" aria-label="Map of Jackson Township voting districts" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block">
+<g>
+<sc-for list="{{shapes}}" as="d" hint-placeholder-count="34"><path class="district" d="{{d.p}}" fill="{{d.fill}}" tabIndex="0" role="button" aria-label="{{d.tip}}" onClick="{{d.open}}" onKeyDown="{{d.key}}"><title>{{d.tip}}</title></path></sc-for>
+</g>
+<g style="pointer-events: none">
+<sc-for list="{{roads}}" as="rd" hint-placeholder-count="0"><path class="{{rd.cls}}" d="{{rd.p}}"></path></sc-for>
+</g>
+</svg>
+<div style="position: absolute; inset: 0; pointer-events: none">
+<sc-for list="{{roadLabels}}" as="rl" hint-placeholder-count="0"><div class="roadname" style="{{rl.style}}">{{rl.text}}</div></sc-for>
+<svg aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible"><sc-for list="{{leaders}}" as="ln" hint-placeholder-count="0"><line class="leader" x1="{{ln.x1}}" y1="{{ln.y1}}" x2="{{ln.x2}}" y2="{{ln.y2}}"></line><circle class="anchor" cx="{{ln.x1}}" cy="{{ln.y1}}" r="3"></circle></sc-for></svg><sc-if value="{{nameKey}}" hint-placeholder-val="{{ false }}"><div style="position: absolute; left: 10px; top: 10px; max-width: 320px; background: #ffffff; border: 1px solid #c9d3de; border-radius: 8px; padding: 8px 10px; display: grid; gap: 4px; box-shadow: 0 1px 5px #0002"><sc-for list="{{nameKey}}" as="nk" hint-placeholder-count="2"><span style="display: flex; align-items: center; gap: 7px; font-size: 13px; color: #1b2430; font-weight: 600"><span class="swatch" style="{{nk.sw}}"></span>{{nk.t}}</span></sc-for></div></sc-if>
+<sc-for list="{{labels}}" as="lab" hint-placeholder-count="0"><div class="{{lab.cls}}" style="{{lab.style}}"><sc-for list="{{lab.lines}}" as="ln" hint-placeholder-count="1"><span class="{{ln.cls}}">{{ln.text}}</span></sc-for><sc-if value="{{lab.bar}}" hint-placeholder-val="{{ false }}"><span class="hbar"><span style="{{lab.bar.a}}"></span><span style="flex: 1"></span><span style="{{lab.bar.b}}"></span></span></sc-if></div></sc-for>
+</div>
+<div style="position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 4px">
+<button class="zb" type="button" aria-label="Zoom in" onClick="{{zoomIn}}" onPointerDown="{{stop}}">+</button>
+<button class="zb" type="button" aria-label="Zoom out" onClick="{{zoomOut}}" onPointerDown="{{stop}}">−</button>
+<button class="zb" type="button" aria-label="Fit map" onClick="{{fit}}" onPointerDown="{{stop}}" style="font-size: 12px">Fit</button>
+</div>
+<div style="position: absolute; right: 12px; bottom: 8px; display: flex; align-items: baseline; gap: 8px; background: #ffffffd9; border-radius: 6px; padding: 3px 8px; pointer-events: none"><b style="font-size: 14px; color: #024172">© DataSense</b><span style="font-size: 11px; color: #46525f">info@getdatasense.com</span></div>
+
+</div>
+</sc-if>
+<sc-if value="{{showTrend}}" hint-placeholder-val="{{ false }}">
+<div style="padding: 14px 16px; border-top: 1px solid #dfe6ee; background: #ffffff">
+<div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 10px">
+<strong style="font-size: 16px">Endorsed slate performance by election</strong>
+<span style="font-size: 12px; color: #5b6673">Margin = endorsed share minus opposed share, all 34 districts. Click a row to map it.</span>
+</div>
+<div style="display: grid; gap: 6px">
+<sc-for list="{{trend}}" as="t" hint-placeholder-count="6"><button type="button" class="{{t.cls}}" onClick="{{t.go}}">
+<span style="font-weight: 800">{{t.label}}</span>
+<span class="tr-bar"><span style="{{t.eBar}}"></span><span style="{{t.nBar}}"></span><span style="{{t.oBar}}"></span></span>
+<span class="tr-pcts"><span style="color: #01665e">{{t.e}}</span><span style="color: #8c510a">{{t.o}}</span></span>
+<span class="{{t.leadCls}}">{{t.lead}}</span>
+<span class="{{t.chgCls}}">{{t.chg}}</span>
+<span style="color: #46525f">{{t.wins}}</span>
+</button></sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{isTable}}" hint-placeholder-val="{{ false }}">
+<div class="tablebox">
+<table>
+<thead><tr>
+<sc-for list="{{heads}}" as="h" hint-placeholder-count="7"><th><button type="button" onClick="{{h.sort}}">{{h.label}} ↕</button></th></sc-for>
+</tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10"><tr onClick="{{r.open}}">
+<td class="num">District {{r.id}}</td><td>{{r.registered}}</td><td>{{r.ballots}}</td><td>{{r.turnout}}</td><td>{{r.regGrowth}}</td><td>{{r.ballotGrowth}}</td><td class="num">{{r.metric}}</td>
+<sc-if value="{{showSecondCol}}" hint-placeholder-val="{{ false }}"><td>{{r.second}}</td></sc-if>
+<sc-if value="{{showBaseCol}}" hint-placeholder-val="{{ false }}"><td>{{r.baseVal}}</td></sc-if>
+</tr></sc-for>
+</tbody>
+</table>
+</div>
+</sc-if>
+</section>
+<sc-if value="{{isEnd}}" hint-placeholder-val="{{ false }}"><p style="color: #46525f; font-size: 13px; margin: 14px 0 0; line-height: 1.5">Communal activist endorsements. <b style="color: #01665e">Endorsed</b>: candidates who received, or ran on a ticket that received, communal activist endorsements in that election. <b style="color: #8c510a">Opposed</b>: the principal opposing ticket. <b>Neutral</b>: other candidates. Describes election coalitions only. Shares are of all votes cast for the office, write-ins excluded.</p></sc-if>
+<footer style="color: #5b6673; font-size: 12px; margin-top: 15px">Candidate support = candidate votes ÷ ballots cast. In multi-seat races, candidate percentages need not add to 100%. Year-over-year comparisons are affected by election type and any district-boundary changes. 2022 has no 2021 baseline. Map boundaries are from New Jersey's election-district GIS service, built into this page.</footer>
+</main>
+<sc-if value="{{drawerOpen}}" hint-placeholder-val="{{ false }}">
+<aside class="drawer" aria-label="District breakdown">
+<header style="display: flex; justify-content: space-between; align-items: center; padding: 0 0 12px; gap: 12px">
+<h2 style="font-size: 22px; margin: 0">District {{openId}}</h2>
+<button type="button" onClick="{{closeDrawer}}" style="background: #f4f7fb; border: 0; border-radius: 6px; padding: 7px 12px; min-height: 44px">Close ×</button>
+</header>
+<h3 style="font-size: 15px; margin: 18px 0 6px; color: #024172">Communal activist endorsements</h3>
+<sc-for list="{{drawerEnd}}" as="x" hint-placeholder-count="6"><div class="stat"><span>{{x.label}}<br><small style="color: #5b6673">{{x.value}}</small></span><strong style="{{x.st}}">{{x.lead}}</strong></div></sc-for>
+<h3 style="font-size: 15px; margin: 18px 0 6px; color: #024172">By year</h3>
+<sc-for list="{{drawerYears}}" as="y" hint-placeholder-count="4"><details open="{{y.open}}"><summary>{{y.year}} · {{y.turnout}} turnout</summary>
+<div class="stat"><span>Registered voters</span><strong>{{y.registered}}</strong></div>
+<div class="stat"><span>Ballots cast</span><strong>{{y.ballots}}</strong></div>
+<div class="stat"><span>Registration change</span><strong>{{y.regChange}}</strong></div>
+<sc-for list="{{y.cands}}" as="c" hint-placeholder-count="2"><div class="stat"><span>{{c.label}}</span><strong>{{c.value}}</strong></div></sc-for>
+</details></sc-for>
+</aside>
+</sc-if>
+</div>
+</script>
+<script type="text/x-dc-logic" id="logic">
+const DATA={"1":{"years":{"2022":{"registered":1687,"ballots":695,"turnout":41.2},"2023":{"registered":1706,"ballots":378,"turnout":22.16},"2024":{"registered":1768,"ballots":1175,"turnout":66.46},"2025":{"registered":1713,"ballots":939,"turnout":54.82},"2026":{"registered":1733,"ballots":853,"turnout":49.22}},"candidates":{"2022:Mayor:Michael Reina":{"votes":249,"pct":35.83},"2022:Mayor:Martin Flemming Iii":{"votes":416,"pct":59.86},"2022:Council:Jennifer L. Kuhn":{"votes":242,"pct":34.82},"2022:Council:Scott Sargent":{"votes":226,"pct":32.52},"2022:Council:Andrew Kern":{"votes":403,"pct":57.99},"2022:Council:Samara P. O'Neill":{"votes":401,"pct":57.7},"2024:Council:Hope Drew":{"votes":393,"pct":33.45},"2024:Council:Elenor Hannum":{"votes":436,"pct":37.11},"2024:Council:Amanda Trombetta":{"votes":482,"pct":41.02},"2024:Council:Eric Hannum":{"votes":412,"pct":35.06},"2024:Council:Nino A. Borrelli":{"votes":308,"pct":26.21},"2024:Council:Mordechai Burnstein":{"votes":212,"pct":18.04},"2024:Council:Giuseppe A. Palmeri":{"votes":307,"pct":26.13},"2025:Council:Alfred Couceiro":{"votes":164,"pct":17.47},"2025:Council:Christopher Pollak":{"votes":671,"pct":71.46},"2026:Mayor:Jennifer Kuhn":{"votes":169,"pct":19.81},"2026:Mayor:Elliott Shem-Tov":{"votes":532,"pct":62.37},"2026:Mayor:Brandon A. Rose":{"votes":119,"pct":13.95},"2026:Council:Brian McCarron":{"votes":145,"pct":17.0},"2026:Council:John 'Pojo' Pejoski":{"votes":159,"pct":18.64},"2026:Council:Christopher Pollak":{"votes":607,"pct":71.16},"2026:Council:Amanda Trombetta":{"votes":521,"pct":61.08},"2026:Council:Paul G. Sarti":{"votes":73,"pct":8.56},"2026:Council:Casey V. Jackson":{"votes":71,"pct":8.32}}},"2":{"years":{"2022":{"registered":2023,"ballots":802,"turnout":39.64},"2023":{"registered":2009,"ballots":426,"turnout":21.2},"2024":{"registered":2012,"ballots":1321,"turnout":65.66},"2025":{"registered":1956,"ballots":1025,"turnout":52.4},"2026":{"registered":1977,"ballots":984,"turnout":49.77}},"candidates":{"2022:Mayor:Michael Reina":{"votes":278,"pct":34.66},"2022:Mayor:Martin Flemming Iii":{"votes":475,"pct":59.23},"2022:Council:Jennifer L. Kuhn":{"votes":289,"pct":36.03},"2022:Council:Scott Sargent":{"votes":286,"pct":35.66},"2022:Council:Andrew Kern":{"votes":439,"pct":54.74},"2022:Council:Samara P. O'Neill":{"votes":438,"pct":54.61},"2024:Council:Hope Drew":{"votes":474,"pct":35.88},"2024:Council:Elenor Hannum":{"votes":413,"pct":31.26},"2024:Council:Amanda Trombetta":{"votes":446,"pct":33.76},"2024:Council:Eric Hannum":{"votes":384,"pct":29.07},"2024:Council:Nino A. Borrelli":{"votes":401,"pct":30.36},"2024:Council:Mordechai Burnstein":{"votes":308,"pct":23.32},"2024:Council:Giuseppe A. Palmeri":{"votes":412,"pct":31.19},"2025:Council:Alfred Couceiro":{"votes":175,"pct":17.07},"2025:Council:Christopher Pollak":{"votes":731,"pct":71.32},"2026:Mayor:Jennifer Kuhn":{"votes":203,"pct":20.63},"2026:Mayor:Elliott Shem-Tov":{"votes":593,"pct":60.26},"2026:Mayor:Brandon A. Rose":{"votes":130,"pct":13.21},"2026:Council:Brian McCarron":{"votes":181,"pct":18.39},"2026:Council:John 'Pojo' Pejoski":{"votes":182,"pct":18.5},"2026:Council:Christopher Pollak":{"votes":662,"pct":67.28},"2026:Council:Amanda Trombetta":{"votes":576,"pct":58.54},"2026:Council:Paul G. Sarti":{"votes":86,"pct":8.74},"2026:Council:Casey V. Jackson":{"votes":83,"pct":8.43}}},"3":{"years":{"2022":{"registered":1170,"ballots":482,"turnout":41.2},"2023":{"registered":1160,"ballots":265,"turnout":22.84},"2024":{"registered":1174,"ballots":761,"turnout":64.82},"2025":{"registered":1187,"ballots":621,"turnout":52.32},"2026":{"registered":1170,"ballots":571,"turnout":48.8}},"candidates":{"2022:Mayor:Michael Reina":{"votes":175,"pct":36.31},"2022:Mayor:Martin Flemming Iii":{"votes":279,"pct":57.88},"2022:Council:Jennifer L. Kuhn":{"votes":185,"pct":38.38},"2022:Council:Scott Sargent":{"votes":162,"pct":33.61},"2022:Council:Andrew Kern":{"votes":263,"pct":54.56},"2022:Council:Samara P. O'Neill":{"votes":260,"pct":53.94},"2024:Council:Hope Drew":{"votes":253,"pct":33.25},"2024:Council:Elenor Hannum":{"votes":254,"pct":33.38},"2024:Council:Amanda Trombetta":{"votes":299,"pct":39.29},"2024:Council:Eric Hannum":{"votes":252,"pct":33.11},"2024:Council:Nino A. Borrelli":{"votes":227,"pct":29.83},"2024:Council:Mordechai Burnstein":{"votes":169,"pct":22.21},"2024:Council:Giuseppe A. Palmeri":{"votes":244,"pct":32.06},"2025:Council:Alfred Couceiro":{"votes":140,"pct":22.54},"2025:Council:Christopher Pollak":{"votes":419,"pct":67.47},"2026:Mayor:Jennifer Kuhn":{"votes":155,"pct":27.15},"2026:Mayor:Elliott Shem-Tov":{"votes":320,"pct":56.04},"2026:Mayor:Brandon A. Rose":{"votes":71,"pct":12.43},"2026:Council:Brian McCarron":{"votes":148,"pct":25.92},"2026:Council:John 'Pojo' Pejoski":{"votes":161,"pct":28.2},"2026:Council:Christopher Pollak":{"votes":355,"pct":62.17},"2026:Council:Amanda Trombetta":{"votes":292,"pct":51.14},"2026:Council:Paul G. Sarti":{"votes":49,"pct":8.58},"2026:Council:Casey V. Jackson":{"votes":42,"pct":7.36}}},"4":{"years":{"2022":{"registered":1436,"ballots":575,"turnout":40.04},"2023":{"registered":1426,"ballots":286,"turnout":20.06},"2024":{"registered":1453,"ballots":907,"turnout":62.42},"2025":{"registered":1435,"ballots":729,"turnout":50.8},"2026":{"registered":1463,"ballots":665,"turnout":45.45}},"candidates":{"2022:Mayor:Michael Reina":{"votes":319,"pct":55.48},"2022:Mayor:Martin Flemming Iii":{"votes":220,"pct":38.26},"2022:Council:Jennifer L. Kuhn":{"votes":312,"pct":54.26},"2022:Council:Scott Sargent":{"votes":302,"pct":52.52},"2022:Council:Andrew Kern":{"votes":207,"pct":36.0},"2022:Council:Samara P. O'Neill":{"votes":215,"pct":37.39},"2024:Council:Hope Drew":{"votes":223,"pct":24.59},"2024:Council:Elenor Hannum":{"votes":220,"pct":24.26},"2024:Council:Amanda Trombetta":{"votes":245,"pct":27.01},"2024:Council:Eric Hannum":{"votes":210,"pct":23.15},"2024:Council:Nino A. Borrelli":{"votes":349,"pct":38.48},"2024:Council:Mordechai Burnstein":{"votes":329,"pct":36.27},"2024:Council:Giuseppe A. Palmeri":{"votes":349,"pct":38.48},"2025:Council:Alfred Couceiro":{"votes":252,"pct":34.57},"2025:Council:Christopher Pollak":{"votes":354,"pct":48.56},"2026:Mayor:Jennifer Kuhn":{"votes":286,"pct":43.01},"2026:Mayor:Elliott Shem-Tov":{"votes":259,"pct":38.95},"2026:Mayor:Brandon A. Rose":{"votes":86,"pct":12.93},"2026:Council:Brian McCarron":{"votes":262,"pct":39.4},"2026:Council:John 'Pojo' Pejoski":{"votes":264,"pct":39.7},"2026:Council:Christopher Pollak":{"votes":311,"pct":46.77},"2026:Council:Amanda Trombetta":{"votes":256,"pct":38.5},"2026:Council:Paul G. Sarti":{"votes":53,"pct":7.97},"2026:Council:Casey V. Jackson":{"votes":60,"pct":9.02}}},"5":{"years":{"2022":{"registered":813,"ballots":443,"turnout":54.49},"2023":{"registered":807,"ballots":282,"turnout":34.94},"2024":{"registered":821,"ballots":614,"turnout":74.79},"2025":{"registered":829,"ballots":533,"turnout":64.29},"2026":{"registered":836,"ballots":486,"turnout":58.13}},"candidates":{"2022:Mayor:Michael Reina":{"votes":257,"pct":58.01},"2022:Mayor:Martin Flemming Iii":{"votes":143,"pct":32.28},"2022:Council:Jennifer L. Kuhn":{"votes":228,"pct":51.47},"2022:Council:Scott Sargent":{"votes":225,"pct":50.79},"2022:Council:Andrew Kern":{"votes":139,"pct":31.38},"2022:Council:Samara P. O'Neill":{"votes":137,"pct":30.93},"2024:Council:Hope Drew":{"votes":145,"pct":23.62},"2024:Council:Elenor Hannum":{"votes":158,"pct":25.73},"2024:Council:Amanda Trombetta":{"votes":173,"pct":28.18},"2024:Council:Eric Hannum":{"votes":142,"pct":23.13},"2024:Council:Nino A. Borrelli":{"votes":208,"pct":33.88},"2024:Council:Mordechai Burnstein":{"votes":160,"pct":26.06},"2024:Council:Giuseppe A. Palmeri":{"votes":197,"pct":32.08},"2025:Council:Alfred Couceiro":{"votes":119,"pct":22.33},"2025:Council:Christopher Pollak":{"votes":293,"pct":54.97},"2026:Mayor:Jennifer Kuhn":{"votes":118,"pct":24.28},"2026:Mayor:Elliott Shem-Tov":{"votes":248,"pct":51.03},"2026:Mayor:Brandon A. Rose":{"votes":77,"pct":15.84},"2026:Council:Brian McCarron":{"votes":81,"pct":16.67},"2026:Council:John 'Pojo' Pejoski":{"votes":80,"pct":16.46},"2026:Council:Christopher Pollak":{"votes":290,"pct":59.67},"2026:Council:Amanda Trombetta":{"votes":245,"pct":50.41},"2026:Council:Paul G. Sarti":{"votes":60,"pct":12.35},"2026:Council:Casey V. Jackson":{"votes":57,"pct":11.73}}},"6":{"years":{"2022":{"registered":1354,"ballots":646,"turnout":47.71},"2023":{"registered":1368,"ballots":348,"turnout":25.44},"2024":{"registered":1374,"ballots":962,"turnout":70.01},"2025":{"registered":1346,"ballots":788,"turnout":58.54},"2026":{"registered":1352,"ballots":740,"turnout":54.73}},"candidates":{"2022:Mayor:Michael Reina":{"votes":311,"pct":48.14},"2022:Mayor:Martin Flemming Iii":{"votes":282,"pct":43.65},"2022:Council:Jennifer L. Kuhn":{"votes":289,"pct":44.74},"2022:Council:Scott Sargent":{"votes":302,"pct":46.75},"2022:Council:Andrew Kern":{"votes":281,"pct":43.5},"2022:Council:Samara P. O'Neill":{"votes":270,"pct":41.8},"2024:Council:Hope Drew":{"votes":298,"pct":30.98},"2024:Council:Elenor Hannum":{"votes":264,"pct":27.44},"2024:Council:Amanda Trombetta":{"votes":275,"pct":28.59},"2024:Council:Eric Hannum":{"votes":201,"pct":20.89},"2024:Council:Nino A. Borrelli":{"votes":390,"pct":40.54},"2024:Council:Mordechai Burnstein":{"votes":343,"pct":35.65},"2024:Council:Giuseppe A. Palmeri":{"votes":395,"pct":41.06},"2025:Council:Alfred Couceiro":{"votes":247,"pct":31.35},"2025:Council:Christopher Pollak":{"votes":407,"pct":51.65},"2026:Mayor:Jennifer Kuhn":{"votes":284,"pct":38.38},"2026:Mayor:Elliott Shem-Tov":{"votes":343,"pct":46.35},"2026:Mayor:Brandon A. Rose":{"votes":75,"pct":10.14},"2026:Council:Brian McCarron":{"votes":261,"pct":35.27},"2026:Council:John 'Pojo' Pejoski":{"votes":269,"pct":36.35},"2026:Council:Christopher Pollak":{"votes":395,"pct":53.38},"2026:Council:Amanda Trombetta":{"votes":338,"pct":45.68},"2026:Council:Paul G. Sarti":{"votes":45,"pct":6.08},"2026:Council:Casey V. Jackson":{"votes":43,"pct":5.81}}},"7":{"years":{"2022":{"registered":995,"ballots":591,"turnout":59.4},"2023":{"registered":978,"ballots":362,"turnout":37.01},"2024":{"registered":1001,"ballots":730,"turnout":72.93},"2025":{"registered":968,"ballots":724,"turnout":74.79},"2026":{"registered":998,"ballots":697,"turnout":69.84}},"candidates":{"2022:Mayor:Michael Reina":{"votes":442,"pct":74.79},"2022:Mayor:Martin Flemming Iii":{"votes":130,"pct":22.0},"2022:Council:Jennifer L. Kuhn":{"votes":439,"pct":74.28},"2022:Council:Scott Sargent":{"votes":437,"pct":73.94},"2022:Council:Andrew Kern":{"votes":117,"pct":19.8},"2022:Council:Samara P. O'Neill":{"votes":121,"pct":20.47},"2024:Council:Hope Drew":{"votes":117,"pct":16.03},"2024:Council:Elenor Hannum":{"votes":98,"pct":13.42},"2024:Council:Amanda Trombetta":{"votes":111,"pct":15.21},"2024:Council:Eric Hannum":{"votes":88,"pct":12.05},"2024:Council:Nino A. Borrelli":{"votes":476,"pct":65.21},"2024:Council:Mordechai Burnstein":{"votes":492,"pct":67.4},"2024:Council:Giuseppe A. Palmeri":{"votes":481,"pct":65.89},"2025:Council:Alfred Couceiro":{"votes":460,"pct":63.54},"2025:Council:Christopher Pollak":{"votes":180,"pct":24.86},"2026:Mayor:Jennifer Kuhn":{"votes":535,"pct":76.76},"2026:Mayor:Elliott Shem-Tov":{"votes":114,"pct":16.36},"2026:Mayor:Brandon A. Rose":{"votes":36,"pct":5.16},"2026:Council:Brian McCarron":{"votes":519,"pct":74.46},"2026:Council:John 'Pojo' Pejoski":{"votes":524,"pct":75.18},"2026:Council:Christopher Pollak":{"votes":133,"pct":19.08},"2026:Council:Amanda Trombetta":{"votes":112,"pct":16.07},"2026:Council:Paul G. Sarti":{"votes":18,"pct":2.58},"2026:Council:Casey V. Jackson":{"votes":21,"pct":3.01}}},"8":{"years":{"2022":{"registered":1859,"ballots":736,"turnout":39.59},"2023":{"registered":1836,"ballots":350,"turnout":19.06},"2024":{"registered":1871,"ballots":1119,"turnout":59.81},"2025":{"registered":1730,"ballots":910,"turnout":52.6},"2026":{"registered":1730,"ballots":848,"turnout":49.02}},"candidates":{"2022:Mayor:Michael Reina":{"votes":503,"pct":68.34},"2022:Mayor:Martin Flemming Iii":{"votes":197,"pct":26.77},"2022:Council:Jennifer L. Kuhn":{"votes":491,"pct":66.71},"2022:Council:Scott Sargent":{"votes":489,"pct":66.44},"2022:Council:Andrew Kern":{"votes":181,"pct":24.59},"2022:Council:Samara P. O'Neill":{"votes":186,"pct":25.27},"2024:Council:Hope Drew":{"votes":271,"pct":24.22},"2024:Council:Elenor Hannum":{"votes":222,"pct":19.84},"2024:Council:Amanda Trombetta":{"votes":258,"pct":23.06},"2024:Council:Eric Hannum":{"votes":197,"pct":17.61},"2024:Council:Nino A. Borrelli":{"votes":542,"pct":48.44},"2024:Council:Mordechai Burnstein":{"votes":497,"pct":44.41},"2024:Council:Giuseppe A. Palmeri":{"votes":525,"pct":46.92},"2025:Council:Alfred Couceiro":{"votes":448,"pct":49.23},"2025:Council:Christopher Pollak":{"votes":326,"pct":35.82},"2026:Mayor:Jennifer Kuhn":{"votes":497,"pct":58.61},"2026:Mayor:Elliott Shem-Tov":{"votes":217,"pct":25.59},"2026:Mayor:Brandon A. Rose":{"votes":91,"pct":10.73},"2026:Council:Brian McCarron":{"votes":473,"pct":55.78},"2026:Council:John 'Pojo' Pejoski":{"votes":477,"pct":56.25},"2026:Council:Christopher Pollak":{"votes":251,"pct":29.6},"2026:Council:Amanda Trombetta":{"votes":213,"pct":25.12},"2026:Council:Paul G. Sarti":{"votes":64,"pct":7.55},"2026:Council:Casey V. Jackson":{"votes":66,"pct":7.78}}},"9":{"years":{"2022":{"registered":1421,"ballots":707,"turnout":49.75},"2023":{"registered":1398,"ballots":401,"turnout":28.68},"2024":{"registered":1444,"ballots":988,"turnout":68.42},"2025":{"registered":1387,"ballots":906,"turnout":65.32},"2026":{"registered":1400,"ballots":871,"turnout":62.21}},"candidates":{"2022:Mayor:Michael Reina":{"votes":388,"pct":54.88},"2022:Mayor:Martin Flemming Iii":{"votes":301,"pct":42.57},"2022:Council:Jennifer L. Kuhn":{"votes":390,"pct":55.16},"2022:Council:Scott Sargent":{"votes":396,"pct":56.01},"2022:Council:Andrew Kern":{"votes":280,"pct":39.6},"2022:Council:Samara P. O'Neill":{"votes":282,"pct":39.89},"2024:Council:Hope Drew":{"votes":327,"pct":33.1},"2024:Council:Elenor Hannum":{"votes":209,"pct":21.15},"2024:Council:Amanda Trombetta":{"votes":196,"pct":19.84},"2024:Council:Eric Hannum":{"votes":193,"pct":19.53},"2024:Council:Nino A. Borrelli":{"votes":494,"pct":50.0},"2024:Council:Mordechai Burnstein":{"votes":458,"pct":46.36},"2024:Council:Giuseppe A. Palmeri":{"votes":504,"pct":51.01},"2025:Council:Alfred Couceiro":{"votes":496,"pct":54.75},"2025:Council:Christopher Pollak":{"votes":343,"pct":37.86},"2026:Mayor:Jennifer Kuhn":{"votes":532,"pct":61.08},"2026:Mayor:Elliott Shem-Tov":{"votes":266,"pct":30.54},"2026:Mayor:Brandon A. Rose":{"votes":58,"pct":6.66},"2026:Council:Brian McCarron":{"votes":516,"pct":59.24},"2026:Council:John 'Pojo' Pejoski":{"votes":534,"pct":61.31},"2026:Council:Christopher Pollak":{"votes":290,"pct":33.3},"2026:Council:Amanda Trombetta":{"votes":249,"pct":28.59},"2026:Council:Paul G. Sarti":{"votes":37,"pct":4.25},"2026:Council:Casey V. Jackson":{"votes":33,"pct":3.79}}},"10":{"years":{"2022":{"registered":1700,"ballots":658,"turnout":38.71},"2023":{"registered":1755,"ballots":360,"turnout":20.51},"2024":{"registered":1877,"ballots":1254,"turnout":66.81},"2025":{"registered":1827,"ballots":990,"turnout":54.19},"2026":{"registered":1869,"ballots":967,"turnout":51.74}},"candidates":{"2022:Mayor:Michael Reina":{"votes":307,"pct":46.66},"2022:Mayor:Martin Flemming Iii":{"votes":297,"pct":45.14},"2022:Council:Jennifer L. Kuhn":{"votes":301,"pct":45.74},"2022:Council:Scott Sargent":{"votes":287,"pct":43.62},"2022:Council:Andrew Kern":{"votes":280,"pct":42.55},"2022:Council:Samara P. O'Neill":{"votes":284,"pct":43.16},"2024:Council:Hope Drew":{"votes":416,"pct":33.17},"2024:Council:Elenor Hannum":{"votes":381,"pct":30.38},"2024:Council:Amanda Trombetta":{"votes":405,"pct":32.3},"2024:Council:Eric Hannum":{"votes":335,"pct":26.71},"2024:Council:Nino A. Borrelli":{"votes":409,"pct":32.62},"2024:Council:Mordechai Burnstein":{"votes":326,"pct":26.0},"2024:Council:Giuseppe A. Palmeri":{"votes":408,"pct":32.54},"2025:Council:Alfred Couceiro":{"votes":271,"pct":27.37},"2025:Council:Christopher Pollak":{"votes":598,"pct":60.4},"2026:Mayor:Jennifer Kuhn":{"votes":341,"pct":35.26},"2026:Mayor:Elliott Shem-Tov":{"votes":462,"pct":47.78},"2026:Mayor:Brandon A. Rose":{"votes":126,"pct":13.03},"2026:Council:Brian McCarron":{"votes":329,"pct":34.02},"2026:Council:John 'Pojo' Pejoski":{"votes":332,"pct":34.33},"2026:Council:Christopher Pollak":{"votes":541,"pct":55.95},"2026:Council:Amanda Trombetta":{"votes":445,"pct":46.02},"2026:Council:Paul G. Sarti":{"votes":61,"pct":6.31},"2026:Council:Casey V. Jackson":{"votes":61,"pct":6.31}}},"11":{"years":{"2022":{"registered":1159,"ballots":514,"turnout":44.35},"2023":{"registered":1146,"ballots":226,"turnout":19.72},"2024":{"registered":1191,"ballots":770,"turnout":64.65},"2025":{"registered":1122,"ballots":621,"turnout":55.35},"2026":{"registered":1119,"ballots":576,"turnout":51.47}},"candidates":{"2022:Mayor:Michael Reina":{"votes":274,"pct":53.31},"2022:Mayor:Martin Flemming Iii":{"votes":213,"pct":41.44},"2022:Council:Jennifer L. Kuhn":{"votes":274,"pct":53.31},"2022:Council:Scott Sargent":{"votes":271,"pct":52.72},"2022:Council:Andrew Kern":{"votes":194,"pct":37.74},"2022:Council:Samara P. O'Neill":{"votes":191,"pct":37.16},"2024:Council:Hope Drew":{"votes":184,"pct":23.9},"2024:Council:Elenor Hannum":{"votes":217,"pct":28.18},"2024:Council:Amanda Trombetta":{"votes":215,"pct":27.92},"2024:Council:Eric Hannum":{"votes":208,"pct":27.01},"2024:Council:Nino A. Borrelli":{"votes":323,"pct":41.95},"2024:Council:Mordechai Burnstein":{"votes":309,"pct":40.13},"2024:Council:Giuseppe A. Palmeri":{"votes":325,"pct":42.21},"2025:Council:Alfred Couceiro":{"votes":251,"pct":40.42},"2025:Council:Christopher Pollak":{"votes":289,"pct":46.54},"2026:Mayor:Jennifer Kuhn":{"votes":249,"pct":43.23},"2026:Mayor:Elliott Shem-Tov":{"votes":254,"pct":44.1},"2026:Mayor:Brandon A. Rose":{"votes":52,"pct":9.03},"2026:Council:Brian McCarron":{"votes":238,"pct":41.32},"2026:Council:John 'Pojo' Pejoski":{"votes":244,"pct":42.36},"2026:Council:Christopher Pollak":{"votes":280,"pct":48.61},"2026:Council:Amanda Trombetta":{"votes":234,"pct":40.62},"2026:Council:Paul G. Sarti":{"votes":38,"pct":6.6},"2026:Council:Casey V. Jackson":{"votes":46,"pct":7.99}}},"12":{"years":{"2022":{"registered":1150,"ballots":427,"turnout":37.13},"2023":{"registered":1150,"ballots":231,"turnout":20.09},"2024":{"registered":1222,"ballots":788,"turnout":64.48},"2025":{"registered":1203,"ballots":631,"turnout":52.45},"2026":{"registered":1215,"ballots":583,"turnout":47.98}},"candidates":{"2022:Mayor:Michael Reina":{"votes":189,"pct":44.26},"2022:Mayor:Martin Flemming Iii":{"votes":203,"pct":47.54},"2022:Council:Jennifer L. Kuhn":{"votes":185,"pct":43.33},"2022:Council:Scott Sargent":{"votes":173,"pct":40.52},"2022:Council:Andrew Kern":{"votes":197,"pct":46.14},"2022:Council:Samara P. O'Neill":{"votes":203,"pct":47.54},"2024:Council:Hope Drew":{"votes":217,"pct":27.54},"2024:Council:Elenor Hannum":{"votes":236,"pct":29.95},"2024:Council:Amanda Trombetta":{"votes":271,"pct":34.39},"2024:Council:Eric Hannum":{"votes":221,"pct":28.05},"2024:Council:Nino A. Borrelli":{"votes":259,"pct":32.87},"2024:Council:Mordechai Burnstein":{"votes":220,"pct":27.92},"2024:Council:Giuseppe A. Palmeri":{"votes":264,"pct":33.5},"2025:Council:Alfred Couceiro":{"votes":195,"pct":30.9},"2025:Council:Christopher Pollak":{"votes":345,"pct":54.68},"2026:Mayor:Jennifer Kuhn":{"votes":251,"pct":43.05},"2026:Mayor:Elliott Shem-Tov":{"votes":243,"pct":41.68},"2026:Mayor:Brandon A. Rose":{"votes":60,"pct":10.29},"2026:Council:Brian McCarron":{"votes":245,"pct":42.02},"2026:Council:John 'Pojo' Pejoski":{"votes":239,"pct":40.99},"2026:Council:Christopher Pollak":{"votes":273,"pct":46.83},"2026:Council:Amanda Trombetta":{"votes":229,"pct":39.28},"2026:Council:Paul G. Sarti":{"votes":39,"pct":6.69},"2026:Council:Casey V. Jackson":{"votes":39,"pct":6.69}}},"13":{"years":{"2022":{"registered":1580,"ballots":623,"turnout":39.43},"2023":{"registered":1666,"ballots":304,"turnout":18.25},"2024":{"registered":1871,"ballots":1264,"turnout":67.56},"2025":{"registered":1933,"ballots":1020,"turnout":52.77},"2026":{"registered":2103,"ballots":1031,"turnout":49.03}},"candidates":{"2022:Mayor:Michael Reina":{"votes":270,"pct":43.34},"2022:Mayor:Martin Flemming Iii":{"votes":298,"pct":47.83},"2022:Council:Jennifer L. Kuhn":{"votes":251,"pct":40.29},"2022:Council:Scott Sargent":{"votes":240,"pct":38.52},"2022:Council:Andrew Kern":{"votes":295,"pct":47.35},"2022:Council:Samara P. O'Neill":{"votes":289,"pct":46.39},"2024:Council:Hope Drew":{"votes":335,"pct":26.5},"2024:Council:Elenor Hannum":{"votes":407,"pct":32.2},"2024:Council:Amanda Trombetta":{"votes":424,"pct":33.54},"2024:Council:Eric Hannum":{"votes":332,"pct":26.27},"2024:Council:Nino A. Borrelli":{"votes":423,"pct":33.47},"2024:Council:Mordechai Burnstein":{"votes":340,"pct":26.9},"2024:Council:Giuseppe A. Palmeri":{"votes":394,"pct":31.17},"2025:Council:Alfred Couceiro":{"votes":323,"pct":31.67},"2025:Council:Christopher Pollak":{"votes":552,"pct":54.12},"2026:Mayor:Jennifer Kuhn":{"votes":427,"pct":41.42},"2026:Mayor:Elliott Shem-Tov":{"votes":413,"pct":40.06},"2026:Mayor:Brandon A. Rose":{"votes":133,"pct":12.9},"2026:Council:Brian McCarron":{"votes":386,"pct":37.44},"2026:Council:John 'Pojo' Pejoski":{"votes":383,"pct":37.15},"2026:Council:Christopher Pollak":{"votes":474,"pct":45.97},"2026:Council:Amanda Trombetta":{"votes":404,"pct":39.19},"2026:Council:Paul G. Sarti":{"votes":85,"pct":8.24},"2026:Council:Casey V. Jackson":{"votes":93,"pct":9.02}}},"14":{"years":{"2022":{"registered":932,"ballots":406,"turnout":43.56},"2023":{"registered":946,"ballots":205,"turnout":21.67},"2024":{"registered":973,"ballots":649,"turnout":66.7},"2025":{"registered":938,"ballots":481,"turnout":51.28},"2026":{"registered":954,"ballots":472,"turnout":49.48}},"candidates":{"2022:Mayor:Michael Reina":{"votes":156,"pct":38.42},"2022:Mayor:Martin Flemming Iii":{"votes":210,"pct":51.72},"2022:Council:Jennifer L. Kuhn":{"votes":154,"pct":37.93},"2022:Council:Scott Sargent":{"votes":146,"pct":35.96},"2022:Council:Andrew Kern":{"votes":199,"pct":49.01},"2022:Council:Samara P. O'Neill":{"votes":206,"pct":50.74},"2024:Council:Hope Drew":{"votes":201,"pct":30.97},"2024:Council:Elenor Hannum":{"votes":162,"pct":24.96},"2024:Council:Amanda Trombetta":{"votes":183,"pct":28.2},"2024:Council:Eric Hannum":{"votes":168,"pct":25.89},"2024:Council:Nino A. Borrelli":{"votes":217,"pct":33.44},"2024:Council:Mordechai Burnstein":{"votes":170,"pct":26.19},"2024:Council:Giuseppe A. Palmeri":{"votes":222,"pct":34.21},"2025:Council:Alfred Couceiro":{"votes":98,"pct":20.37},"2025:Council:Christopher Pollak":{"votes":306,"pct":63.62},"2026:Mayor:Jennifer Kuhn":{"votes":98,"pct":20.76},"2026:Mayor:Elliott Shem-Tov":{"votes":271,"pct":57.42},"2026:Mayor:Brandon A. Rose":{"votes":76,"pct":16.1},"2026:Council:Brian McCarron":{"votes":85,"pct":18.01},"2026:Council:John 'Pojo' Pejoski":{"votes":83,"pct":17.58},"2026:Council:Christopher Pollak":{"votes":310,"pct":65.68},"2026:Council:Amanda Trombetta":{"votes":261,"pct":55.3},"2026:Council:Paul G. Sarti":{"votes":47,"pct":9.96},"2026:Council:Casey V. Jackson":{"votes":43,"pct":9.11}}},"15":{"years":{"2022":{"registered":1179,"ballots":512,"turnout":43.43},"2023":{"registered":1194,"ballots":318,"turnout":26.63},"2024":{"registered":1220,"ballots":812,"turnout":66.56},"2025":{"registered":1184,"ballots":657,"turnout":55.49},"2026":{"registered":1198,"ballots":666,"turnout":55.59}},"candidates":{"2022:Mayor:Michael Reina":{"votes":321,"pct":62.7},"2022:Mayor:Martin Flemming Iii":{"votes":173,"pct":33.79},"2022:Council:Jennifer L. Kuhn":{"votes":321,"pct":62.7},"2022:Council:Scott Sargent":{"votes":318,"pct":62.11},"2022:Council:Andrew Kern":{"votes":169,"pct":33.01},"2022:Council:Samara P. O'Neill":{"votes":165,"pct":32.23},"2024:Council:Hope Drew":{"votes":174,"pct":21.43},"2024:Council:Elenor Hannum":{"votes":171,"pct":21.06},"2024:Council:Amanda Trombetta":{"votes":196,"pct":24.14},"2024:Council:Eric Hannum":{"votes":157,"pct":19.33},"2024:Council:Nino A. Borrelli":{"votes":401,"pct":49.38},"2024:Council:Mordechai Burnstein":{"votes":374,"pct":46.06},"2024:Council:Giuseppe A. Palmeri":{"votes":395,"pct":48.65},"2025:Council:Alfred Couceiro":{"votes":360,"pct":54.79},"2025:Council:Christopher Pollak":{"votes":241,"pct":36.68},"2026:Mayor:Jennifer Kuhn":{"votes":387,"pct":58.11},"2026:Mayor:Elliott Shem-Tov":{"votes":195,"pct":29.28},"2026:Mayor:Brandon A. Rose":{"votes":58,"pct":8.71},"2026:Council:Brian McCarron":{"votes":376,"pct":56.46},"2026:Council:John 'Pojo' Pejoski":{"votes":384,"pct":57.66},"2026:Council:Christopher Pollak":{"votes":219,"pct":32.88},"2026:Council:Amanda Trombetta":{"votes":185,"pct":27.78},"2026:Council:Paul G. Sarti":{"votes":41,"pct":6.16},"2026:Council:Casey V. Jackson":{"votes":41,"pct":6.16}}},"16":{"years":{"2022":{"registered":1540,"ballots":507,"turnout":32.92},"2023":{"registered":1570,"ballots":279,"turnout":17.77},"2024":{"registered":1651,"ballots":1037,"turnout":62.81},"2025":{"registered":1600,"ballots":772,"turnout":48.25},"2026":{"registered":1589,"ballots":706,"turnout":44.43}},"candidates":{"2022:Mayor:Michael Reina":{"votes":219,"pct":43.2},"2022:Mayor:Martin Flemming Iii":{"votes":226,"pct":44.58},"2022:Council:Jennifer L. Kuhn":{"votes":214,"pct":42.21},"2022:Council:Scott Sargent":{"votes":203,"pct":40.04},"2022:Council:Andrew Kern":{"votes":214,"pct":42.21},"2022:Council:Samara P. O'Neill":{"votes":224,"pct":44.18},"2024:Council:Hope Drew":{"votes":335,"pct":32.3},"2024:Council:Elenor Hannum":{"votes":315,"pct":30.38},"2024:Council:Amanda Trombetta":{"votes":388,"pct":37.42},"2024:Council:Eric Hannum":{"votes":285,"pct":27.48},"2024:Council:Nino A. Borrelli":{"votes":242,"pct":23.34},"2024:Council:Mordechai Burnstein":{"votes":160,"pct":15.43},"2024:Council:Giuseppe A. Palmeri":{"votes":223,"pct":21.5},"2025:Council:Alfred Couceiro":{"votes":107,"pct":13.86},"2025:Council:Christopher Pollak":{"votes":550,"pct":71.24},"2026:Mayor:Jennifer Kuhn":{"votes":120,"pct":17.0},"2026:Mayor:Elliott Shem-Tov":{"votes":436,"pct":61.76},"2026:Mayor:Brandon A. Rose":{"votes":105,"pct":14.87},"2026:Council:Brian McCarron":{"votes":95,"pct":13.46},"2026:Council:John 'Pojo' Pejoski":{"votes":82,"pct":11.61},"2026:Council:Christopher Pollak":{"votes":504,"pct":71.39},"2026:Council:Amanda Trombetta":{"votes":416,"pct":58.92},"2026:Council:Paul G. Sarti":{"votes":74,"pct":10.48},"2026:Council:Casey V. Jackson":{"votes":80,"pct":11.33}}},"17":{"years":{"2022":{"registered":1447,"ballots":587,"turnout":40.57},"2023":{"registered":1466,"ballots":361,"turnout":24.62},"2024":{"registered":1480,"ballots":1019,"turnout":68.85},"2025":{"registered":1436,"ballots":748,"turnout":52.09},"2026":{"registered":1523,"ballots":777,"turnout":51.02}},"candidates":{"2022:Mayor:Michael Reina":{"votes":242,"pct":41.23},"2022:Mayor:Martin Flemming Iii":{"votes":312,"pct":53.15},"2022:Council:Jennifer L. Kuhn":{"votes":233,"pct":39.69},"2022:Council:Scott Sargent":{"votes":226,"pct":38.5},"2022:Council:Andrew Kern":{"votes":303,"pct":51.62},"2022:Council:Samara P. O'Neill":{"votes":303,"pct":51.62},"2024:Council:Hope Drew":{"votes":338,"pct":33.17},"2024:Council:Elenor Hannum":{"votes":315,"pct":30.91},"2024:Council:Amanda Trombetta":{"votes":359,"pct":35.23},"2024:Council:Eric Hannum":{"votes":287,"pct":28.16},"2024:Council:Nino A. Borrelli":{"votes":330,"pct":32.38},"2024:Council:Mordechai Burnstein":{"votes":228,"pct":22.37},"2024:Council:Giuseppe A. Palmeri":{"votes":302,"pct":29.64},"2025:Council:Alfred Couceiro":{"votes":150,"pct":20.05},"2025:Council:Christopher Pollak":{"votes":468,"pct":62.57},"2026:Mayor:Jennifer Kuhn":{"votes":209,"pct":26.9},"2026:Mayor:Elliott Shem-Tov":{"votes":391,"pct":50.32},"2026:Mayor:Brandon A. Rose":{"votes":118,"pct":15.19},"2026:Council:Brian McCarron":{"votes":196,"pct":25.23},"2026:Council:John 'Pojo' Pejoski":{"votes":194,"pct":24.97},"2026:Council:Christopher Pollak":{"votes":453,"pct":58.3},"2026:Council:Amanda Trombetta":{"votes":375,"pct":48.26},"2026:Council:Paul G. Sarti":{"votes":75,"pct":9.65},"2026:Council:Casey V. Jackson":{"votes":76,"pct":9.78}}},"18":{"years":{"2022":{"registered":1371,"ballots":731,"turnout":53.32},"2023":{"registered":1369,"ballots":355,"turnout":25.93},"2024":{"registered":1407,"ballots":1027,"turnout":72.99},"2025":{"registered":1397,"ballots":905,"turnout":64.78},"2026":{"registered":1394,"ballots":806,"turnout":57.82}},"candidates":{"2022:Mayor:Michael Reina":{"votes":465,"pct":63.61},"2022:Mayor:Martin Flemming Iii":{"votes":229,"pct":31.33},"2022:Council:Jennifer L. Kuhn":{"votes":442,"pct":60.47},"2022:Council:Scott Sargent":{"votes":433,"pct":59.23},"2022:Council:Andrew Kern":{"votes":215,"pct":29.41},"2022:Council:Samara P. O'Neill":{"votes":225,"pct":30.78},"2024:Council:Hope Drew":{"votes":204,"pct":19.86},"2024:Council:Elenor Hannum":{"votes":194,"pct":18.89},"2024:Council:Amanda Trombetta":{"votes":196,"pct":19.08},"2024:Council:Eric Hannum":{"votes":164,"pct":15.97},"2024:Council:Nino A. Borrelli":{"votes":554,"pct":53.94},"2024:Council:Mordechai Burnstein":{"votes":529,"pct":51.51},"2024:Council:Giuseppe A. Palmeri":{"votes":546,"pct":53.16},"2025:Council:Alfred Couceiro":{"votes":458,"pct":50.61},"2025:Council:Christopher Pollak":{"votes":307,"pct":33.92},"2026:Mayor:Jennifer Kuhn":{"votes":488,"pct":60.55},"2026:Mayor:Elliott Shem-Tov":{"votes":214,"pct":26.55},"2026:Mayor:Brandon A. Rose":{"votes":74,"pct":9.18},"2026:Council:Brian McCarron":{"votes":466,"pct":57.82},"2026:Council:John 'Pojo' Pejoski":{"votes":489,"pct":60.67},"2026:Council:Christopher Pollak":{"votes":256,"pct":31.76},"2026:Council:Amanda Trombetta":{"votes":207,"pct":25.68},"2026:Council:Paul G. Sarti":{"votes":49,"pct":6.08},"2026:Council:Casey V. Jackson":{"votes":54,"pct":6.7}}},"19":{"years":{"2022":{"registered":1113,"ballots":556,"turnout":49.96},"2023":{"registered":1085,"ballots":243,"turnout":22.4},"2024":{"registered":1102,"ballots":779,"turnout":70.69},"2025":{"registered":1068,"ballots":664,"turnout":62.17},"2026":{"registered":1090,"ballots":656,"turnout":60.18}},"candidates":{"2022:Mayor:Michael Reina":{"votes":323,"pct":58.09},"2022:Mayor:Martin Flemming Iii":{"votes":200,"pct":35.97},"2022:Council:Jennifer L. Kuhn":{"votes":327,"pct":58.81},"2022:Council:Scott Sargent":{"votes":323,"pct":58.09},"2022:Council:Andrew Kern":{"votes":188,"pct":33.81},"2022:Council:Samara P. O'Neill":{"votes":192,"pct":34.53},"2024:Council:Hope Drew":{"votes":138,"pct":17.72},"2024:Council:Elenor Hannum":{"votes":171,"pct":21.95},"2024:Council:Amanda Trombetta":{"votes":173,"pct":22.21},"2024:Council:Eric Hannum":{"votes":155,"pct":19.9},"2024:Council:Nino A. Borrelli":{"votes":405,"pct":51.99},"2024:Council:Mordechai Burnstein":{"votes":398,"pct":51.09},"2024:Council:Giuseppe A. Palmeri":{"votes":405,"pct":51.99},"2025:Council:Alfred Couceiro":{"votes":375,"pct":56.48},"2025:Council:Christopher Pollak":{"votes":207,"pct":31.17},"2026:Mayor:Jennifer Kuhn":{"votes":408,"pct":62.2},"2026:Mayor:Elliott Shem-Tov":{"votes":166,"pct":25.3},"2026:Mayor:Brandon A. Rose":{"votes":57,"pct":8.69},"2026:Council:Brian McCarron":{"votes":399,"pct":60.82},"2026:Council:John 'Pojo' Pejoski":{"votes":392,"pct":59.76},"2026:Council:Christopher Pollak":{"votes":193,"pct":29.42},"2026:Council:Amanda Trombetta":{"votes":153,"pct":23.32},"2026:Council:Paul G. Sarti":{"votes":34,"pct":5.18},"2026:Council:Casey V. Jackson":{"votes":44,"pct":6.71}}},"20":{"years":{"2022":{"registered":1910,"ballots":817,"turnout":42.77},"2023":{"registered":1909,"ballots":423,"turnout":22.16},"2024":{"registered":1936,"ballots":1370,"turnout":70.76},"2025":{"registered":1874,"ballots":1009,"turnout":53.84},"2026":{"registered":1913,"ballots":960,"turnout":50.18}},"candidates":{"2022:Mayor:Michael Reina":{"votes":322,"pct":39.41},"2022:Mayor:Martin Flemming Iii":{"votes":458,"pct":56.06},"2022:Council:Jennifer L. Kuhn":{"votes":319,"pct":39.05},"2022:Council:Scott Sargent":{"votes":307,"pct":37.58},"2022:Council:Andrew Kern":{"votes":436,"pct":53.37},"2022:Council:Samara P. O'Neill":{"votes":423,"pct":51.77},"2024:Council:Hope Drew":{"votes":416,"pct":30.36},"2024:Council:Elenor Hannum":{"votes":506,"pct":36.93},"2024:Council:Amanda Trombetta":{"votes":582,"pct":42.48},"2024:Council:Eric Hannum":{"votes":487,"pct":35.55},"2024:Council:Nino A. Borrelli":{"votes":381,"pct":27.81},"2024:Council:Mordechai Burnstein":{"votes":281,"pct":20.51},"2024:Council:Giuseppe A. Palmeri":{"votes":412,"pct":30.07},"2025:Council:Alfred Couceiro":{"votes":167,"pct":16.55},"2025:Council:Christopher Pollak":{"votes":731,"pct":72.45},"2026:Mayor:Jennifer Kuhn":{"votes":153,"pct":15.94},"2026:Mayor:Elliott Shem-Tov":{"votes":647,"pct":67.4},"2026:Mayor:Brandon A. Rose":{"votes":113,"pct":11.77},"2026:Council:Brian McCarron":{"votes":127,"pct":13.23},"2026:Council:John 'Pojo' Pejoski":{"votes":138,"pct":14.38},"2026:Council:Christopher Pollak":{"votes":715,"pct":74.48},"2026:Council:Amanda Trombetta":{"votes":631,"pct":65.73},"2026:Council:Paul G. Sarti":{"votes":65,"pct":6.77},"2026:Council:Casey V. Jackson":{"votes":66,"pct":6.88}}},"21":{"years":{"2022":{"registered":1699,"ballots":742,"turnout":43.67},"2023":{"registered":1681,"ballots":417,"turnout":24.81},"2024":{"registered":1756,"ballots":1229,"turnout":69.99},"2025":{"registered":1701,"ballots":967,"turnout":56.85},"2026":{"registered":1692,"ballots":926,"turnout":54.73}},"candidates":{"2022:Mayor:Michael Reina":{"votes":296,"pct":39.89},"2022:Mayor:Martin Flemming Iii":{"votes":401,"pct":54.04},"2022:Council:Jennifer L. Kuhn":{"votes":292,"pct":39.35},"2022:Council:Scott Sargent":{"votes":274,"pct":36.93},"2022:Council:Andrew Kern":{"votes":398,"pct":53.64},"2022:Council:Samara P. O'Neill":{"votes":399,"pct":53.77},"2024:Council:Hope Drew":{"votes":397,"pct":32.3},"2024:Council:Elenor Hannum":{"votes":392,"pct":31.9},"2024:Council:Amanda Trombetta":{"votes":446,"pct":36.29},"2024:Council:Eric Hannum":{"votes":378,"pct":30.76},"2024:Council:Nino A. Borrelli":{"votes":431,"pct":35.07},"2024:Council:Mordechai Burnstein":{"votes":311,"pct":25.31},"2024:Council:Giuseppe A. Palmeri":{"votes":430,"pct":34.99},"2025:Council:Alfred Couceiro":{"votes":224,"pct":23.16},"2025:Council:Christopher Pollak":{"votes":655,"pct":67.74},"2026:Mayor:Jennifer Kuhn":{"votes":250,"pct":27.0},"2026:Mayor:Elliott Shem-Tov":{"votes":527,"pct":56.91},"2026:Mayor:Brandon A. Rose":{"votes":117,"pct":12.63},"2026:Council:Brian McCarron":{"votes":228,"pct":24.62},"2026:Council:John 'Pojo' Pejoski":{"votes":238,"pct":25.7},"2026:Council:Christopher Pollak":{"votes":585,"pct":63.17},"2026:Council:Amanda Trombetta":{"votes":508,"pct":54.86},"2026:Council:Paul G. Sarti":{"votes":71,"pct":7.67},"2026:Council:Casey V. Jackson":{"votes":74,"pct":7.99}}},"22":{"years":{"2022":{"registered":1193,"ballots":814,"turnout":68.23},"2023":{"registered":1228,"ballots":572,"turnout":46.58},"2024":{"registered":1253,"ballots":1027,"turnout":81.96},"2025":{"registered":1234,"ballots":893,"turnout":72.37},"2026":{"registered":1234,"ballots":850,"turnout":68.88}},"candidates":{"2022:Mayor:Michael Reina":{"votes":470,"pct":57.74},"2022:Mayor:Martin Flemming Iii":{"votes":260,"pct":31.94},"2022:Council:Jennifer L. Kuhn":{"votes":440,"pct":54.05},"2022:Council:Scott Sargent":{"votes":414,"pct":50.86},"2022:Council:Andrew Kern":{"votes":242,"pct":29.73},"2022:Council:Samara P. O'Neill":{"votes":248,"pct":30.47},"2024:Council:Hope Drew":{"votes":366,"pct":35.64},"2024:Council:Elenor Hannum":{"votes":205,"pct":19.96},"2024:Council:Amanda Trombetta":{"votes":264,"pct":25.71},"2024:Council:Eric Hannum":{"votes":177,"pct":17.23},"2024:Council:Nino A. Borrelli":{"votes":397,"pct":38.66},"2024:Council:Mordechai Burnstein":{"votes":309,"pct":30.09},"2024:Council:Giuseppe A. Palmeri":{"votes":379,"pct":36.9},"2025:Council:Alfred Couceiro":{"votes":256,"pct":28.67},"2025:Council:Christopher Pollak":{"votes":411,"pct":46.02},"2026:Mayor:Jennifer Kuhn":{"votes":268,"pct":31.53},"2026:Mayor:Elliott Shem-Tov":{"votes":389,"pct":45.76},"2026:Mayor:Brandon A. Rose":{"votes":145,"pct":17.06},"2026:Council:Brian McCarron":{"votes":201,"pct":23.65},"2026:Council:John 'Pojo' Pejoski":{"votes":176,"pct":20.71},"2026:Council:Christopher Pollak":{"votes":461,"pct":54.24},"2026:Council:Amanda Trombetta":{"votes":412,"pct":48.47},"2026:Council:Paul G. Sarti":{"votes":118,"pct":13.88},"2026:Council:Casey V. Jackson":{"votes":108,"pct":12.71}}},"23":{"years":{"2022":{"registered":1209,"ballots":530,"turnout":43.84},"2023":{"registered":1214,"ballots":245,"turnout":20.18},"2024":{"registered":1274,"ballots":930,"turnout":73.0},"2025":{"registered":1271,"ballots":708,"turnout":55.7},"2026":{"registered":1282,"ballots":643,"turnout":50.16}},"candidates":{"2022:Mayor:Michael Reina":{"votes":214,"pct":40.38},"2022:Mayor:Martin Flemming Iii":{"votes":294,"pct":55.47},"2022:Council:Jennifer L. Kuhn":{"votes":216,"pct":40.75},"2022:Council:Scott Sargent":{"votes":208,"pct":39.25},"2022:Council:Andrew Kern":{"votes":289,"pct":54.53},"2022:Council:Samara P. O'Neill":{"votes":284,"pct":53.58},"2024:Council:Hope Drew":{"votes":323,"pct":34.73},"2024:Council:Elenor Hannum":{"votes":364,"pct":39.14},"2024:Council:Amanda Trombetta":{"votes":402,"pct":43.23},"2024:Council:Eric Hannum":{"votes":322,"pct":34.62},"2024:Council:Nino A. Borrelli":{"votes":243,"pct":26.13},"2024:Council:Mordechai Burnstein":{"votes":148,"pct":15.91},"2024:Council:Giuseppe A. Palmeri":{"votes":250,"pct":26.88},"2025:Council:Alfred Couceiro":{"votes":137,"pct":19.35},"2025:Council:Christopher Pollak":{"votes":503,"pct":71.05},"2026:Mayor:Jennifer Kuhn":{"votes":101,"pct":15.71},"2026:Mayor:Elliott Shem-Tov":{"votes":417,"pct":64.85},"2026:Mayor:Brandon A. Rose":{"votes":100,"pct":15.55},"2026:Council:Brian McCarron":{"votes":77,"pct":11.98},"2026:Council:John 'Pojo' Pejoski":{"votes":93,"pct":14.46},"2026:Council:Christopher Pollak":{"votes":472,"pct":73.41},"2026:Council:Amanda Trombetta":{"votes":404,"pct":62.83},"2026:Council:Paul G. Sarti":{"votes":58,"pct":9.02},"2026:Council:Casey V. Jackson":{"votes":64,"pct":9.95}}},"24":{"years":{"2022":{"registered":1344,"ballots":582,"turnout":43.3},"2023":{"registered":1352,"ballots":345,"turnout":25.52},"2024":{"registered":1394,"ballots":970,"turnout":69.58},"2025":{"registered":1388,"ballots":729,"turnout":52.52},"2026":{"registered":1408,"ballots":684,"turnout":48.58}},"candidates":{"2022:Mayor:Michael Reina":{"votes":220,"pct":37.8},"2022:Mayor:Martin Flemming Iii":{"votes":333,"pct":57.22},"2022:Council:Jennifer L. Kuhn":{"votes":219,"pct":37.63},"2022:Council:Scott Sargent":{"votes":211,"pct":36.25},"2022:Council:Andrew Kern":{"votes":318,"pct":54.64},"2022:Council:Samara P. O'Neill":{"votes":313,"pct":53.78},"2024:Council:Hope Drew":{"votes":303,"pct":31.24},"2024:Council:Elenor Hannum":{"votes":323,"pct":33.3},"2024:Council:Amanda Trombetta":{"votes":365,"pct":37.63},"2024:Council:Eric Hannum":{"votes":311,"pct":32.06},"2024:Council:Nino A. Borrelli":{"votes":287,"pct":29.59},"2024:Council:Mordechai Burnstein":{"votes":193,"pct":19.9},"2024:Council:Giuseppe A. Palmeri":{"votes":285,"pct":29.38},"2025:Council:Alfred Couceiro":{"votes":119,"pct":16.32},"2025:Council:Christopher Pollak":{"votes":539,"pct":73.94},"2026:Mayor:Jennifer Kuhn":{"votes":114,"pct":16.67},"2026:Mayor:Elliott Shem-Tov":{"votes":455,"pct":66.52},"2026:Mayor:Brandon A. Rose":{"votes":78,"pct":11.4},"2026:Council:Brian McCarron":{"votes":93,"pct":13.6},"2026:Council:John 'Pojo' Pejoski":{"votes":102,"pct":14.91},"2026:Council:Christopher Pollak":{"votes":522,"pct":76.32},"2026:Council:Amanda Trombetta":{"votes":451,"pct":65.94},"2026:Council:Paul G. Sarti":{"votes":45,"pct":6.58},"2026:Council:Casey V. Jackson":{"votes":46,"pct":6.73}}},"25":{"years":{"2022":{"registered":1466,"ballots":716,"turnout":48.84},"2023":{"registered":1432,"ballots":292,"turnout":20.39},"2024":{"registered":1448,"ballots":1059,"turnout":73.14},"2025":{"registered":1417,"ballots":905,"turnout":63.87},"2026":{"registered":1449,"ballots":927,"turnout":63.98}},"candidates":{"2022:Mayor:Michael Reina":{"votes":443,"pct":61.87},"2022:Mayor:Martin Flemming Iii":{"votes":241,"pct":33.66},"2022:Council:Jennifer L. Kuhn":{"votes":430,"pct":60.06},"2022:Council:Scott Sargent":{"votes":409,"pct":57.12},"2022:Council:Andrew Kern":{"votes":240,"pct":33.52},"2022:Council:Samara P. O'Neill":{"votes":236,"pct":32.96},"2024:Council:Hope Drew":{"votes":175,"pct":16.53},"2024:Council:Elenor Hannum":{"votes":212,"pct":20.02},"2024:Council:Amanda Trombetta":{"votes":243,"pct":22.95},"2024:Council:Eric Hannum":{"votes":207,"pct":19.55},"2024:Council:Nino A. Borrelli":{"votes":550,"pct":51.94},"2024:Council:Mordechai Burnstein":{"votes":507,"pct":47.88},"2024:Council:Giuseppe A. Palmeri":{"votes":550,"pct":51.94},"2025:Council:Alfred Couceiro":{"votes":527,"pct":58.23},"2025:Council:Christopher Pollak":{"votes":304,"pct":33.59},"2026:Mayor:Jennifer Kuhn":{"votes":589,"pct":63.54},"2026:Mayor:Elliott Shem-Tov":{"votes":231,"pct":24.92},"2026:Mayor:Brandon A. Rose":{"votes":93,"pct":10.03},"2026:Council:Brian McCarron":{"votes":575,"pct":62.03},"2026:Council:John 'Pojo' Pejoski":{"votes":574,"pct":61.92},"2026:Council:Christopher Pollak":{"votes":264,"pct":28.48},"2026:Council:Amanda Trombetta":{"votes":221,"pct":23.84},"2026:Council:Paul G. Sarti":{"votes":60,"pct":6.47},"2026:Council:Casey V. Jackson":{"votes":67,"pct":7.23}}},"26":{"years":{"2022":{"registered":1055,"ballots":686,"turnout":65.02},"2023":{"registered":1050,"ballots":491,"turnout":46.76},"2024":{"registered":1069,"ballots":868,"turnout":81.2},"2025":{"registered":1030,"ballots":741,"turnout":71.94},"2026":{"registered":1033,"ballots":700,"turnout":67.76}},"candidates":{"2022:Mayor:Michael Reina":{"votes":401,"pct":58.45},"2022:Mayor:Martin Flemming Iii":{"votes":229,"pct":33.38},"2022:Council:Jennifer L. Kuhn":{"votes":378,"pct":55.1},"2022:Council:Scott Sargent":{"votes":364,"pct":53.06},"2022:Council:Andrew Kern":{"votes":216,"pct":31.49},"2022:Council:Samara P. O'Neill":{"votes":221,"pct":32.22},"2024:Council:Hope Drew":{"votes":299,"pct":34.45},"2024:Council:Elenor Hannum":{"votes":152,"pct":17.51},"2024:Council:Amanda Trombetta":{"votes":212,"pct":24.42},"2024:Council:Eric Hannum":{"votes":127,"pct":14.63},"2024:Council:Nino A. Borrelli":{"votes":357,"pct":41.13},"2024:Council:Mordechai Burnstein":{"votes":287,"pct":33.06},"2024:Council:Giuseppe A. Palmeri":{"votes":348,"pct":40.09},"2025:Council:Alfred Couceiro":{"votes":223,"pct":30.09},"2025:Council:Christopher Pollak":{"votes":351,"pct":47.37},"2026:Mayor:Jennifer Kuhn":{"votes":215,"pct":30.71},"2026:Mayor:Elliott Shem-Tov":{"votes":329,"pct":47.0},"2026:Mayor:Brandon A. Rose":{"votes":97,"pct":13.86},"2026:Council:Brian McCarron":{"votes":186,"pct":26.57},"2026:Council:John 'Pojo' Pejoski":{"votes":155,"pct":22.14},"2026:Council:Christopher Pollak":{"votes":375,"pct":53.57},"2026:Council:Amanda Trombetta":{"votes":335,"pct":47.86},"2026:Council:Paul G. Sarti":{"votes":74,"pct":10.57},"2026:Council:Casey V. Jackson":{"votes":73,"pct":10.43}}},"27":{"years":{"2022":{"registered":575,"ballots":339,"turnout":58.96},"2023":{"registered":568,"ballots":158,"turnout":27.82},"2024":{"registered":572,"ballots":441,"turnout":77.1},"2025":{"registered":558,"ballots":413,"turnout":74.01},"2026":{"registered":561,"ballots":406,"turnout":72.37}},"candidates":{"2022:Mayor:Michael Reina":{"votes":247,"pct":72.86},"2022:Mayor:Martin Flemming Iii":{"votes":75,"pct":22.12},"2022:Council:Jennifer L. Kuhn":{"votes":248,"pct":73.16},"2022:Council:Scott Sargent":{"votes":233,"pct":68.73},"2022:Council:Andrew Kern":{"votes":64,"pct":18.88},"2022:Council:Samara P. O'Neill":{"votes":66,"pct":19.47},"2024:Council:Hope Drew":{"votes":79,"pct":17.91},"2024:Council:Elenor Hannum":{"votes":63,"pct":14.29},"2024:Council:Amanda Trombetta":{"votes":69,"pct":15.65},"2024:Council:Eric Hannum":{"votes":60,"pct":13.61},"2024:Council:Nino A. Borrelli":{"votes":299,"pct":67.8},"2024:Council:Mordechai Burnstein":{"votes":291,"pct":65.99},"2024:Council:Giuseppe A. Palmeri":{"votes":307,"pct":69.61},"2025:Council:Alfred Couceiro":{"votes":251,"pct":60.77},"2025:Council:Christopher Pollak":{"votes":113,"pct":27.36},"2026:Mayor:Jennifer Kuhn":{"votes":307,"pct":75.62},"2026:Mayor:Elliott Shem-Tov":{"votes":71,"pct":17.49},"2026:Mayor:Brandon A. Rose":{"votes":20,"pct":4.93},"2026:Council:Brian McCarron":{"votes":302,"pct":74.38},"2026:Council:John 'Pojo' Pejoski":{"votes":309,"pct":76.11},"2026:Council:Christopher Pollak":{"votes":83,"pct":20.44},"2026:Council:Amanda Trombetta":{"votes":68,"pct":16.75},"2026:Council:Paul G. Sarti":{"votes":12,"pct":2.96},"2026:Council:Casey V. Jackson":{"votes":10,"pct":2.46}}},"28":{"years":{"2022":{"registered":710,"ballots":510,"turnout":71.83},"2023":{"registered":698,"ballots":349,"turnout":50.0},"2024":{"registered":718,"ballots":619,"turnout":86.21},"2025":{"registered":724,"ballots":548,"turnout":75.69},"2026":{"registered":730,"ballots":526,"turnout":72.05}},"candidates":{"2022:Mayor:Michael Reina":{"votes":286,"pct":56.08},"2022:Mayor:Martin Flemming Iii":{"votes":162,"pct":31.76},"2022:Council:Jennifer L. Kuhn":{"votes":279,"pct":54.71},"2022:Council:Scott Sargent":{"votes":269,"pct":52.75},"2022:Council:Andrew Kern":{"votes":154,"pct":30.2},"2022:Council:Samara P. O'Neill":{"votes":155,"pct":30.39},"2024:Council:Hope Drew":{"votes":149,"pct":24.07},"2024:Council:Elenor Hannum":{"votes":146,"pct":23.59},"2024:Council:Amanda Trombetta":{"votes":196,"pct":31.66},"2024:Council:Eric Hannum":{"votes":138,"pct":22.29},"2024:Council:Nino A. Borrelli":{"votes":249,"pct":40.23},"2024:Council:Mordechai Burnstein":{"votes":181,"pct":29.24},"2024:Council:Giuseppe A. Palmeri":{"votes":238,"pct":38.45},"2025:Council:Alfred Couceiro":{"votes":168,"pct":30.66},"2025:Council:Christopher Pollak":{"votes":253,"pct":46.17},"2026:Mayor:Jennifer Kuhn":{"votes":133,"pct":25.29},"2026:Mayor:Elliott Shem-Tov":{"votes":225,"pct":42.78},"2026:Mayor:Brandon A. Rose":{"votes":135,"pct":25.67},"2026:Council:Brian McCarron":{"votes":125,"pct":23.76},"2026:Council:John 'Pojo' Pejoski":{"votes":102,"pct":19.39},"2026:Council:Christopher Pollak":{"votes":281,"pct":53.42},"2026:Council:Amanda Trombetta":{"votes":245,"pct":46.58},"2026:Council:Paul G. Sarti":{"votes":80,"pct":15.21},"2026:Council:Casey V. Jackson":{"votes":81,"pct":15.4}}},"29":{"years":{"2022":{"registered":699,"ballots":490,"turnout":70.1},"2023":{"registered":698,"ballots":341,"turnout":48.85},"2024":{"registered":715,"ballots":586,"turnout":81.96},"2025":{"registered":696,"ballots":520,"turnout":74.71},"2026":{"registered":696,"ballots":487,"turnout":69.97}},"candidates":{"2022:Mayor:Michael Reina":{"votes":215,"pct":43.88},"2022:Mayor:Martin Flemming Iii":{"votes":228,"pct":46.53},"2022:Council:Jennifer L. Kuhn":{"votes":209,"pct":42.65},"2022:Council:Scott Sargent":{"votes":182,"pct":37.14},"2022:Council:Andrew Kern":{"votes":204,"pct":41.63},"2022:Council:Samara P. O'Neill":{"votes":207,"pct":42.24},"2024:Council:Hope Drew":{"votes":107,"pct":18.26},"2024:Council:Elenor Hannum":{"votes":178,"pct":30.38},"2024:Council:Amanda Trombetta":{"votes":214,"pct":36.52},"2024:Council:Eric Hannum":{"votes":155,"pct":26.45},"2024:Council:Nino A. Borrelli":{"votes":235,"pct":40.1},"2024:Council:Mordechai Burnstein":{"votes":177,"pct":30.2},"2024:Council:Giuseppe A. Palmeri":{"votes":221,"pct":37.71},"2025:Council:Alfred Couceiro":{"votes":134,"pct":25.77},"2025:Council:Christopher Pollak":{"votes":260,"pct":50.0},"2026:Mayor:Jennifer Kuhn":{"votes":138,"pct":28.34},"2026:Mayor:Elliott Shem-Tov":{"votes":256,"pct":52.57},"2026:Mayor:Brandon A. Rose":{"votes":64,"pct":13.14},"2026:Council:Brian McCarron":{"votes":100,"pct":20.53},"2026:Council:John 'Pojo' Pejoski":{"votes":105,"pct":21.56},"2026:Council:Christopher Pollak":{"votes":320,"pct":65.71},"2026:Council:Amanda Trombetta":{"votes":270,"pct":55.44},"2026:Council:Paul G. Sarti":{"votes":49,"pct":10.06},"2026:Council:Casey V. Jackson":{"votes":46,"pct":9.45}}},"30":{"years":{"2022":{"registered":711,"ballots":351,"turnout":49.37},"2023":{"registered":719,"ballots":193,"turnout":26.84},"2024":{"registered":759,"ballots":558,"turnout":73.52},"2025":{"registered":730,"ballots":451,"turnout":61.78},"2026":{"registered":743,"ballots":443,"turnout":59.62}},"candidates":{"2022:Mayor:Michael Reina":{"votes":179,"pct":51.0},"2022:Mayor:Martin Flemming Iii":{"votes":150,"pct":42.74},"2022:Council:Jennifer L. Kuhn":{"votes":174,"pct":49.57},"2022:Council:Scott Sargent":{"votes":168,"pct":47.86},"2022:Council:Andrew Kern":{"votes":142,"pct":40.46},"2022:Council:Samara P. O'Neill":{"votes":144,"pct":41.03},"2024:Council:Hope Drew":{"votes":144,"pct":25.81},"2024:Council:Elenor Hannum":{"votes":159,"pct":28.49},"2024:Council:Amanda Trombetta":{"votes":186,"pct":33.33},"2024:Council:Eric Hannum":{"votes":149,"pct":26.7},"2024:Council:Nino A. Borrelli":{"votes":210,"pct":37.63},"2024:Council:Mordechai Burnstein":{"votes":218,"pct":39.07},"2024:Council:Giuseppe A. Palmeri":{"votes":223,"pct":39.96},"2025:Council:Alfred Couceiro":{"votes":205,"pct":45.45},"2025:Council:Christopher Pollak":{"votes":196,"pct":43.46},"2026:Mayor:Jennifer Kuhn":{"votes":237,"pct":53.5},"2026:Mayor:Elliott Shem-Tov":{"votes":157,"pct":35.44},"2026:Mayor:Brandon A. Rose":{"votes":39,"pct":8.8},"2026:Council:Brian McCarron":{"votes":226,"pct":51.02},"2026:Council:John 'Pojo' Pejoski":{"votes":229,"pct":51.69},"2026:Council:Christopher Pollak":{"votes":181,"pct":40.86},"2026:Council:Amanda Trombetta":{"votes":162,"pct":36.57},"2026:Council:Paul G. Sarti":{"votes":26,"pct":5.87},"2026:Council:Casey V. Jackson":{"votes":27,"pct":6.09}}},"31":{"years":{"2022":{"registered":649,"ballots":296,"turnout":45.61},"2023":{"registered":674,"ballots":184,"turnout":27.3},"2024":{"registered":719,"ballots":509,"turnout":70.79},"2025":{"registered":726,"ballots":400,"turnout":55.1},"2026":{"registered":838,"ballots":494,"turnout":58.95}},"candidates":{"2022:Mayor:Michael Reina":{"votes":134,"pct":45.27},"2022:Mayor:Martin Flemming Iii":{"votes":135,"pct":45.61},"2022:Council:Jennifer L. Kuhn":{"votes":124,"pct":41.89},"2022:Council:Scott Sargent":{"votes":106,"pct":35.81},"2022:Council:Andrew Kern":{"votes":122,"pct":41.22},"2022:Council:Samara P. O'Neill":{"votes":131,"pct":44.26},"2024:Council:Hope Drew":{"votes":133,"pct":26.13},"2024:Council:Elenor Hannum":{"votes":155,"pct":30.45},"2024:Council:Amanda Trombetta":{"votes":176,"pct":34.58},"2024:Council:Eric Hannum":{"votes":134,"pct":26.33},"2024:Council:Nino A. Borrelli":{"votes":175,"pct":34.38},"2024:Council:Mordechai Burnstein":{"votes":131,"pct":25.74},"2024:Council:Giuseppe A. Palmeri":{"votes":164,"pct":32.22},"2025:Council:Alfred Couceiro":{"votes":105,"pct":26.25},"2025:Council:Christopher Pollak":{"votes":255,"pct":63.75},"2026:Mayor:Jennifer Kuhn":{"votes":212,"pct":42.91},"2026:Mayor:Elliott Shem-Tov":{"votes":210,"pct":42.51},"2026:Mayor:Brandon A. Rose":{"votes":52,"pct":10.53},"2026:Council:Brian McCarron":{"votes":209,"pct":42.31},"2026:Council:John 'Pojo' Pejoski":{"votes":209,"pct":42.31},"2026:Council:Christopher Pollak":{"votes":229,"pct":46.36},"2026:Council:Amanda Trombetta":{"votes":214,"pct":43.32},"2026:Council:Paul G. Sarti":{"votes":27,"pct":5.47},"2026:Council:Casey V. Jackson":{"votes":34,"pct":6.88}}},"32":{"years":{"2022":{"registered":807,"ballots":351,"turnout":43.49},"2023":{"registered":800,"ballots":175,"turnout":21.88},"2024":{"registered":829,"ballots":552,"turnout":66.59},"2025":{"registered":806,"ballots":458,"turnout":56.82},"2026":{"registered":802,"ballots":403,"turnout":50.25}},"candidates":{"2022:Mayor:Michael Reina":{"votes":133,"pct":37.89},"2022:Mayor:Martin Flemming Iii":{"votes":197,"pct":56.13},"2022:Council:Jennifer L. Kuhn":{"votes":125,"pct":35.61},"2022:Council:Scott Sargent":{"votes":105,"pct":29.91},"2022:Council:Andrew Kern":{"votes":185,"pct":52.71},"2022:Council:Samara P. O'Neill":{"votes":190,"pct":54.13},"2024:Council:Hope Drew":{"votes":177,"pct":32.07},"2024:Council:Elenor Hannum":{"votes":181,"pct":32.79},"2024:Council:Amanda Trombetta":{"votes":196,"pct":35.51},"2024:Council:Eric Hannum":{"votes":164,"pct":29.71},"2024:Council:Nino A. Borrelli":{"votes":174,"pct":31.52},"2024:Council:Mordechai Burnstein":{"votes":127,"pct":23.01},"2024:Council:Giuseppe A. Palmeri":{"votes":165,"pct":29.89},"2025:Council:Alfred Couceiro":{"votes":104,"pct":22.71},"2025:Council:Christopher Pollak":{"votes":310,"pct":67.69},"2026:Mayor:Jennifer Kuhn":{"votes":100,"pct":24.81},"2026:Mayor:Elliott Shem-Tov":{"votes":243,"pct":60.3},"2026:Mayor:Brandon A. Rose":{"votes":49,"pct":12.16},"2026:Council:Brian McCarron":{"votes":96,"pct":23.82},"2026:Council:John 'Pojo' Pejoski":{"votes":104,"pct":25.81},"2026:Council:Christopher Pollak":{"votes":266,"pct":66.0},"2026:Council:Amanda Trombetta":{"votes":217,"pct":53.85},"2026:Council:Paul G. Sarti":{"votes":31,"pct":7.69},"2026:Council:Casey V. Jackson":{"votes":31,"pct":7.69}}},"33":{"years":{"2022":{"registered":570,"ballots":383,"turnout":67.19},"2023":{"registered":559,"ballots":256,"turnout":45.8},"2024":{"registered":583,"ballots":479,"turnout":82.16},"2025":{"registered":566,"ballots":426,"turnout":75.27},"2026":{"registered":578,"ballots":382,"turnout":66.09}},"candidates":{"2022:Mayor:Michael Reina":{"votes":190,"pct":49.61},"2022:Mayor:Martin Flemming Iii":{"votes":152,"pct":39.69},"2022:Council:Jennifer L. Kuhn":{"votes":186,"pct":48.56},"2022:Council:Scott Sargent":{"votes":173,"pct":45.17},"2022:Council:Andrew Kern":{"votes":143,"pct":37.34},"2022:Council:Samara P. O'Neill":{"votes":142,"pct":37.08},"2024:Council:Hope Drew":{"votes":120,"pct":25.05},"2024:Council:Elenor Hannum":{"votes":153,"pct":31.94},"2024:Council:Amanda Trombetta":{"votes":176,"pct":36.74},"2024:Council:Eric Hannum":{"votes":127,"pct":26.51},"2024:Council:Nino A. Borrelli":{"votes":167,"pct":34.86},"2024:Council:Mordechai Burnstein":{"votes":122,"pct":25.47},"2024:Council:Giuseppe A. Palmeri":{"votes":153,"pct":31.94},"2025:Council:Alfred Couceiro":{"votes":120,"pct":28.17},"2025:Council:Christopher Pollak":{"votes":203,"pct":47.65},"2026:Mayor:Jennifer Kuhn":{"votes":118,"pct":30.89},"2026:Mayor:Elliott Shem-Tov":{"votes":165,"pct":43.19},"2026:Mayor:Brandon A. Rose":{"votes":72,"pct":18.85},"2026:Council:Brian McCarron":{"votes":99,"pct":25.92},"2026:Council:John 'Pojo' Pejoski":{"votes":86,"pct":22.51},"2026:Council:Christopher Pollak":{"votes":193,"pct":50.52},"2026:Council:Amanda Trombetta":{"votes":164,"pct":42.93},"2026:Council:Paul G. Sarti":{"votes":70,"pct":18.32},"2026:Council:Casey V. Jackson":{"votes":65,"pct":17.02}}},"34":{"years":{"2022":{"registered":875,"ballots":580,"turnout":66.29},"2023":{"registered":866,"ballots":407,"turnout":47.0},"2024":{"registered":879,"ballots":736,"turnout":83.73},"2025":{"registered":867,"ballots":664,"turnout":76.59},"2026":{"registered":861,"ballots":627,"turnout":72.82}},"candidates":{"2022:Mayor:Michael Reina":{"votes":222,"pct":38.28},"2022:Mayor:Martin Flemming Iii":{"votes":281,"pct":48.45},"2022:Council:Jennifer L. Kuhn":{"votes":215,"pct":37.07},"2022:Council:Scott Sargent":{"votes":209,"pct":36.03},"2022:Council:Andrew Kern":{"votes":262,"pct":45.17},"2022:Council:Samara P. O'Neill":{"votes":269,"pct":46.38},"2024:Council:Hope Drew":{"votes":156,"pct":21.2},"2024:Council:Elenor Hannum":{"votes":239,"pct":32.47},"2024:Council:Amanda Trombetta":{"votes":261,"pct":35.46},"2024:Council:Eric Hannum":{"votes":201,"pct":27.31},"2024:Council:Nino A. Borrelli":{"votes":270,"pct":36.68},"2024:Council:Mordechai Burnstein":{"votes":206,"pct":27.99},"2024:Council:Giuseppe A. Palmeri":{"votes":260,"pct":35.33},"2025:Council:Alfred Couceiro":{"votes":187,"pct":28.16},"2025:Council:Christopher Pollak":{"votes":348,"pct":52.41},"2026:Mayor:Jennifer Kuhn":{"votes":124,"pct":19.78},"2026:Mayor:Elliott Shem-Tov":{"votes":366,"pct":58.37},"2026:Mayor:Brandon A. Rose":{"votes":92,"pct":14.67},"2026:Council:Brian McCarron":{"votes":91,"pct":14.51},"2026:Council:John 'Pojo' Pejoski":{"votes":84,"pct":13.4},"2026:Council:Christopher Pollak":{"votes":413,"pct":65.87},"2026:Council:Amanda Trombetta":{"votes":384,"pct":61.24},"2026:Council:Paul G. Sarti":{"votes":69,"pct":11.0},"2026:Council:Casey V. Jackson":{"votes":74,"pct":11.8}}}};
+const GEO_TEXT=`
+1|580|300|27746|M612 262L629 274L637 275L643 272L660 257L668 253L682 279L711 299L714 332L720 346L721 358L589 353L577 377L586 380L588 387L586 390L580 391L580 394L578 391L576 394L571 394L569 398L566 396L563 400L555 401L486 314L444 254L470 241L519 229L544 213L561 199L562 193L567 192L578 204L593 248L600 256Z
+2|666|216|23244|M611 105L618 118L619 116L621 118L631 116L635 117L634 122L628 127L623 137L637 148L645 169L651 171L652 185L654 187L652 188L656 190L662 202L666 202L665 205L672 210L672 214L680 222L686 223L688 228L692 226L698 233L704 232L705 237L708 237L713 232L718 235L725 232L727 234L740 230L743 226L748 227L753 223L754 225L762 222L765 225L766 223L773 225L781 213L782 215L785 212L787 214L787 218L792 219L792 223L796 223L794 226L795 229L808 227L809 230L804 236L807 239L816 238L816 249L838 258L840 262L828 263L812 275L739 310L712 301L708 296L683 280L668 253L660 257L643 272L636 275L629 274L600 256L592 246L578 204L569 192L562 193L548 117L541 102L591 100L609 96Z
+3|485|451|50991|M328 250L339 262L347 265L352 264L363 273L374 276L376 282L380 283L381 287L389 292L389 299L393 302L391 313L394 319L390 324L397 351L400 349L402 352L405 349L407 353L413 355L416 360L420 358L426 365L432 363L433 366L439 367L440 371L448 373L450 371L458 374L461 379L466 379L468 377L472 381L476 380L478 384L485 380L491 382L490 380L494 379L500 383L507 383L506 385L509 386L514 383L517 385L516 387L528 389L534 392L535 395L541 396L544 401L544 398L549 397L554 401L563 400L565 396L569 398L571 394L576 394L578 391L580 394L583 389L590 392L594 390L602 398L608 397L609 402L612 400L611 403L614 406L615 405L615 407L635 416L637 421L641 421L651 429L653 437L655 435L658 439L662 440L662 444L668 449L674 460L678 475L658 471L649 473L638 480L628 497L623 530L612 541L567 551L538 553L520 557L491 555L476 561L442 589L429 583L424 578L381 504L360 371L356 357L350 348L324 256L315 221L317 220L327 229Z
+4|569|724|136609|M678 475L716 494L725 493L731 501L764 522L836 506L913 506L925 509L937 506L945 647L202 994L151 802L147 796L384 760L403 757L462 730L462 725L467 720L471 725L472 719L477 718L505 720L512 715L531 718L543 725L570 723L589 726L606 680L610 661L620 657L621 648L651 643L655 632L643 584L636 574L642 565L643 552L636 539L624 527L630 492L638 480L651 472L666 471Z
+5|822|370|1529|M838 413L834 413L821 395L807 363L796 345L823 336L828 350L825 352L833 361Z
+6|794|314|8632|M843 262L846 267L843 268L845 269L844 272L851 273L850 276L860 280L859 286L863 288L862 290L865 290L862 294L874 304L878 305L877 312L881 316L796 345L721 358L720 346L714 332L711 301L739 310L812 275L828 263ZM812 286L813 298L808 296L807 301L814 303L815 316L844 318L856 298L849 292L831 267Z
+7|974|287|3201|M988 305L986 309L989 312L988 317L991 323L995 324L986 339L950 317L949 312L965 304L959 298L958 282L954 282L954 275L945 275L941 261L969 249L989 251L998 248L995 253L995 257L999 257L996 264L998 267L996 272L999 279L993 285L992 297Z
+8|909|251|6338|M954 275L954 282L958 282L959 298L965 304L949 312L950 317L853 248L857 243L873 220L889 180L904 193L930 230L945 268L945 275Z
+9|934|180|3367|M947 142L954 151L958 149L957 155L962 161L966 163L966 172L972 184L973 189L968 194L962 198L953 197L943 201L923 219L903 192L889 180Z
+10|864|84|14261|M916 35L916 43L919 43L921 48L920 59L926 61L924 68L927 71L917 98L922 112L926 116L921 122L924 126L920 133L921 136L930 138L932 133L934 136L946 142L889 180L879 172L877 136L856 131L836 122L825 96L794 69L773 60L765 45L774 24L913 31Z
+11|672|400|11873|M721 358L724 371L754 416L752 426L716 446L683 478L676 473L674 460L668 449L662 444L662 440L658 439L655 435L653 437L651 429L639 420L637 421L635 416L631 415L629 412L617 408L615 405L614 406L611 403L612 400L609 402L608 397L602 398L597 391L586 390L587 381L577 377L589 353Z
+12|853|206|3224|M882 175L889 180L874 218L853 248L835 237L815 219L828 204L833 192L834 173L845 174L846 178L859 179L867 174L877 172Z
+13|476|131|18216|M535 88L547 114L563 196L545 213L533 204L534 193L522 185L501 180L485 167L434 135L431 177L419 209L414 235L381 222L384 186L390 166L398 142L403 113L399 109L407 102L417 88L429 88L440 83L466 78L473 67L474 46L477 43L497 37L526 19L527 45L524 67Z
+14|345|652|106600|M625 527L636 539L643 552L642 565L636 574L643 584L655 632L651 643L621 648L620 657L610 661L606 680L589 726L570 723L543 725L531 718L512 715L505 720L477 718L472 719L471 725L467 720L462 725L462 730L403 757L147 796L115 725L110 708L78 563L106 550L364 541L416 580L442 589L474 563L490 555L519 557L538 553L572 550L612 541L620 536Z
+15|890|295|3291|M875 263L925 299L928 342L923 342L919 335L916 340L917 336L915 337L913 332L911 335L905 334L905 332L894 323L894 320L888 315L881 316L877 312L879 309L877 305L862 294L865 290L862 290L863 288L859 286L860 280L850 276L851 273L844 272L845 269L843 268L846 267L843 261L847 259L853 248Z
+16|831|297|1483|M856 298L844 318L815 316L814 303L807 301L808 296L813 298L812 286L831 267L849 292Z
+17|651|112|25298|M632 17L643 36L638 49L639 54L659 59L669 67L678 81L685 85L691 85L717 75L715 63L709 57L715 50L709 44L721 31L726 46L725 68L739 105L739 118L733 147L742 173L744 193L755 202L766 225L762 222L754 225L753 223L748 227L743 226L740 230L727 234L725 232L718 235L713 232L708 237L705 237L704 232L698 233L692 226L688 228L686 223L680 222L672 214L672 210L665 205L666 202L662 202L656 190L652 188L654 187L652 185L651 171L645 169L637 148L623 137L628 127L634 122L634 116L621 118L619 116L618 118L613 112L609 96L591 100L541 102L525 68L527 44L525 12ZM682 161L666 186L673 198L672 205L686 217L711 226L727 220L740 217L733 189L735 183Z
+18|882|386|11493|M894 323L905 332L905 334L911 335L913 332L915 337L917 336L916 340L919 335L923 342L928 342L933 426L926 430L886 473L834 413L838 413L837 386L833 361L825 352L828 350L823 336L882 315L889 316L894 320Z
+19|924|478|16699|M773 465L790 471L815 476L829 429L818 424L821 414L834 413L886 473L926 430L933 426L937 506L925 509L913 506L836 506L769 522L757 518L750 511L731 501L725 493L716 494L683 478L707 452L726 438L752 426L755 421L751 412L724 371L721 358L791 346L782 376L767 371L757 384L765 398L761 423L756 434Z
+20|350|79|33368|M525 12L526 19L511 30L494 38L476 43L473 67L466 78L440 83L429 88L417 88L407 102L399 109L403 113L398 142L384 186L383 210L381 222L344 207L322 190L312 129L281 125L259 116L242 114L226 101L210 60L276 0Z
+21|427|300|16497|M370 217L436 245L459 273L486 314L554 400L552 400L547 396L544 398L544 401L541 396L535 395L534 392L528 389L516 387L517 385L514 383L509 386L506 385L507 383L500 383L494 379L490 380L491 382L485 380L478 384L476 380L472 381L468 377L466 379L461 379L455 373L450 371L448 373L445 372L440 371L439 367L433 366L432 363L425 365L420 358L416 360L413 355L407 353L405 349L402 352L400 349L396 350L390 324L394 319L391 313L393 302L389 299L389 292L381 287L380 283L376 282L374 276L364 274L352 264L347 265L333 257L334 255L328 250L327 229L317 220L315 221L324 204L322 190L344 207Z
+22|804|428|3350|M819 392L834 413L821 414L818 424L829 429L815 476L790 471L773 465L792 453L787 446L790 432L782 427L781 414L785 414L783 405L784 397L788 394L792 395L804 376L811 373Z
+23|280|202|14093|M249 115L259 116L281 125L312 131L324 202L316 219L315 225L350 348L327 323L225 204L216 176L229 147L229 110L226 101L243 114Z
+24|189|361|116349|M226 101L229 110L229 147L216 176L225 205L356 357L363 386L381 504L424 578L435 586L416 580L364 541L106 550L78 563L68 519L38 393L24 319L10 266L0 251L210 60Z
+25|799|160|7058|M836 122L842 125L840 149L836 160L833 192L827 206L815 219L757 193L764 120L767 117L773 112L807 111Z
+26|780|404|2882|M811 373L804 377L802 382L792 395L788 394L784 397L783 405L785 414L781 414L781 423L785 429L790 432L787 446L792 453L773 465L756 434L761 423L765 398L757 384L767 371L782 376L791 346L796 345Z
+27|960|227|3076|M979 210L985 216L984 220L990 222L989 229L993 234L996 233L998 241L1000 243L997 244L998 248L993 250L969 249L941 261L930 230L923 219L943 201L953 197L962 198L973 189L974 195L979 199L977 202Z
+28|693|56|2257|M698 27L720 28L721 31L709 44L715 50L709 57L715 63L717 75L687 85L679 82L669 67L662 63L659 59L666 51L673 50L682 40L682 33L688 25L694 23Z
+29|689|191|1677|M694 166L708 172L708 186L695 208L698 215L714 219L715 221L727 220L711 226L686 217L672 205L673 198L666 186L682 161Z
+30|857|154|1767|M870 134L877 136L879 171L867 174L857 179L846 178L845 174L834 173L842 125L856 131Z
+31|470|202|8163|M545 213L519 230L470 241L444 254L435 244L414 235L420 207L431 177L434 135L485 167L501 180L522 185L534 193L533 204Z
+32|760|81|9613|M774 24L765 45L771 57L794 69L824 95L836 122L807 111L773 112L767 117L764 120L757 193L811 216L835 237L853 248L846 260L840 262L838 258L821 251L815 249L816 238L807 239L804 236L809 230L808 227L795 229L794 226L796 223L792 223L792 219L787 218L787 214L785 212L782 215L781 213L773 225L766 223L755 202L744 193L742 173L733 147L739 118L739 105L725 68L726 51L719 21Z
+33|665|34|1770|M719 21L720 28L718 28L699 28L696 24L690 24L683 33L682 40L673 49L666 51L659 59L640 55L638 49L643 36L632 17Z
+34|718|200|1443|M740 217L715 221L714 219L698 215L695 210L708 186L708 172L735 183L733 189Z
+`;
+const GEO=(()=>{const o={};GEO_TEXT.trim().split('\n').forEach(l=>{const [id,x,y,a,p]=l.split('|');o[id]={x:+x,y:+y,a:+a,p}});return o})();
+// Major roads (OpenStreetMap contributors, ODbL), projected to the same 1000-unit plane as the districts.
+const ROADS_TEXT=`
+1|Allentown-Lakewood Road|M22 61 19 61 5 61 5 61 -5 61
+0|Siloam Road|M525 12 526 6 536 -30 535 -34 529 -41 528 -45 529 -62 534 -81 534 -102 537 -122 537 -128 530 -187 528 -190 515 -202
+1|Church Road|M1060 231 1031 245 1004 246 999 247 998 248
+1|Trenton-Lakewood Road|M118 6 161 -9 172 -10 199 -6M232 40 227 37 210 7 205 -6M22 61 42 60 46 58 76 35 96 19 102 14 105 12
+1|Sunnyside Road|M930 30 936 23 952 0 956 -2 959 -7 960 -7 967 -6 968 -7 971 -16 983 -15 997 -21
+0|I-195|M53 -4 78 1 93 6 102 12 146 47 153 51 177 62 184 65 197 71 199 71 217 77 220 78 235 83 248 86 259 87 273 85 275 83 330 63 338 61 348 61 357 63 365 66 401 86 415 93 425 97 438 100 446 102 460 102 542 101 555 101 558 101 561 101 584 100 598 98 608 95 611 95 645 87 663 85 680 86 724 96 728 96 740 96 852 87 870 88 918 94 921 94 935 94 948 94 968 92 977 89 985 86 993 80 1008 62
+1|Union Avenue|M702 918 690 919 660 921 640 923 636 923 632 925
+1|Brown Avenue|M727 924 726 925 722 924 702 918
+1|South Stump Tavern Road|M429 583 428 585 426 585 415 579 343 526 329 509 276 470 224 430
+1|Bowman Road|M725 493 721 495 717 494 678 475 672 472 666 471 656 471 651 472 644 476 636 482 631 488 628 497 625 526 623 530 620 536 614 540 597 545 565 552 538 553 519 557 495 555 490 555 477 561 474 563 442 589
+1|Hawkin Road|M86 601 73 543 38 390 25 322 11 271 10 267 8 262 0 251
+1|Renaissance Drive|M853 836 858 825 861 824 866 822 868 822 872 819 885 800 885 795 880 788
+0|Jackson Mills Road|M561 191 563 190 616 155 619 153 625 148 626 148 631 145 639 139 642 137 650 131 685 105 690 102 692 100 697 96 701 93 704 91 707 88 713 84
+0|East Veterans Highway|M939 505 929 508 922 508 913 506 894 506 890 506 886 507 837 506 821 509 794 516 769 522 763 522 758 519 750 511 732 502 728 497 717 480 704 446 701 443 669 414 649 397 581 369 559 349 556 346
+1|Cross Street|M925 509 926 511 928 515 939 528 977 573 1054 643
+0|Lakewood Road|M983 483 992 478 1006 472M-44 510 -13 505 59 482
+0|County Line Road|M853 248 867 257 880 266 915 292 948 316 958 323 961 325 1009 353
+1|Leesville Road|M513 347 486 314 468 289 459 273 435 245 411 233 344 207 324 192 322 192
+0|West Veterans Highway|M59 482 81 475 224 430 323 399 363 389 391 382 401 378 406 374 434 346 441 342 451 342 505 346 506 346 524 348 533 349 550 347 556 346
+1|14th Street|M995 378 1024 394 1034 399 1099 389
+1|West Pleasant Grove Road|M556 273 469 291
+1|East Colliers Mills Road|M15 611 39 605 66 603 86 601
+1|Bennetts Mills Road|M889 180 886 186 873 220 857 243 853 248 846 259 841 262 832 262 829 263 812 275 806 278 792 285 789 286 712 322 622 331 556 346
+0|Old Whitesville Road|M939 505 954 500 961 496
+1|Aldrich Road|M1049 101 954 137 947 141 892 177 889 180
+1|Farmingdale Road|M767 43 772 45 798 52 820 60 828 61 850 63 899 83 920 87
+1|West Colliers Mills Road|M-133 613 -131 613 -97 601 -87 598 -50 603 15 611
+0|Cedar Swamp Road|M525 12 527 45 524 65 525 70 532 83 534 88 539 96 541 100 542 104 544 106 547 115 550 131 551 135 561 191 562 193 563 197 563 199 553 299 554 314 554 341 555 344 556 346
+0|Whiting-New Egypt Road|M223 1007 193 952 191 950
+1|Frank Applegate Road|M713 322 712 306 711 299 708 296 698 290 691 284 683 280 681 277 677 268 669 254 664 244 659 225 656 217 653 212 648 208 643 206 625 206 619 205 616 203 604 193 581 177
+1|Georgian Boulevard|M788 311 758 301
+1|Butterfly Road|M707 452 726 438 752 426 754 424 755 420 754 416 751 412 738 393 724 369 721 358 720 347 714 333 713 322
+1|Long Swamp Road|M-266 739 -265 739 -169 719 -109 706 -87 691 -49 662 -28 660 4 655 14 648 31 641
+1|South Hope Chapel Road|M886 507 883 520 883 522 876 552 871 584 868 595 861 616 855 636 853 645 849 650 768 716 757 730 742 756 735 768 733 771 728 778 717 795 715 801 715 802 711 824 708 837 706 853 703 866 702 878 701 883 700 887
+1|North Cooks Bridge Road|M744 188 744 193 747 197 754 201 758 206 766 220 768 231 771 236 774 239 783 242 788 249 789 259 788 274 789 283 789 286
+1|Ridgeway Boulevard|M759 728 755 753 757 773 759 782M774 788 764 809 763 820 763 821 762 825 755 834 712 883 709 884 701 883
+1|Freehold Road|M350 349 385 298 419 269 452 250 470 241 519 229 543 214 553 204 556 203 563 202
+1|Bartley Road|M842 125 840 150 835 160 833 179 833 192 827 206 815 219
+1|Diamond Road|M414 235 419 209 423 203 431 177 431 158 433 148 436 121 438 118 448 104 450 101 468 77 472 68 474 64 474 47 476 44 478 42 496 37 509 31 523 21 526 19
+1|Thompson Bridge Road|M444 342 443 341 426 338 408 338 394 340 385 344 357 349 352 351
+1|Burke Road|M403 113 399 138 393 153 384 187 384 204 381 222
+0|Ridgeway Road|M705 758 724 767 733 771 759 782 769 786 807 803 808 804 813 807 843 831 854 837 863 843 864 845 869 848 871 850 873 851 875 853 879 855 884 860 886 861 898 870 987 939 1019 963
+1|Brewers Bridge Road|M862 446 863 445 863 399 861 393 856 375 856 369 862 352 869 339 878 333 889 328 895 322 898 317 902 305 906 299 915 292 916 292 927 282 941 261
+1|Myrtle Street|M629 919 628 908 626 888
+1|Larsen Road|M877 136 881 135 890 127 910 117 921 109
+0|East Commodore Boulevard|M551 135 622 145 624 146 625 149
+1|Beckerville Road|M559 960 557 958 554 957 429 980 414 1008 407 1014 394 1021
+1|Horicon Avenue|M429 980 403 986 305 1044 252 1059
+1|North New Prospect Road|M886 77 882 88 880 92 875 106 877 136 877 140 879 172 881 174 889 180
+1|James Street|M971 565 1001 540 1006 538 1018 536 1076 530
+1|Bethel Church Road|M941 261 969 248 977 248 987 251 993 249 998 248
+1|North Hope Chapel Road|M886 507 887 504 888 501 888 495 886 479 886 473 888 469 927 428 954 416 978 405 980 402 985 394 986 393 1010 353
+0|Toms River Road|M705 758 683 747 676 740 672 737 668 736 651 734 625 719 609 708 600 703 535 674 526 667 463 605 459 601 443 590 435 586 432 585 429 583 424 578 422 574 401 539 398 533 380 503 365 402 364 391 363 389
+1|Faraday Avenue|M977 573 971 582 968 591 919 657
+0|Whitesville Road|M961 496 964 495 983 483M794 516 796 536 807 560 815 566 840 580 868 596 887 607 891 610 919 658 922 661 949 679 952 682 954 687 955 689 959 697 961 702 975 731 976 734 983 748 984 750 992 767 994 772 996 775 997 778 1001 785
+1|Renaissance Boulevard West|M890 772 885 783 880 788 872 790 860 787
+1|South Cooks Bridge Road|M789 286 789 304 788 317 788 327 791 336 793 339 795 343 799 349 801 354 807 363 814 381 819 392 829 407 864 448 885 471 886 473
+1|Patterson Road|M311 128 312 126 313 123 320 113 338 89
+0|Route 37 West|M724 922 727 924 730 926 734 930 737 934 739 935 749 948 755 956 765 965 788 980 833 1009
+1|Manapaqua Avenue|M677 904 651 886
+1|Miller Road|M988 479 991 459 991 456 987 445 983 439 981 433 978 429 976 426 976 418 978 405
+1|Chestnut Street|M651 886 626 888
+1|White Road|M939 528 904 577 898 586 894 595 885 606
+1|Colonial Drive|M774 913 775 915 776 918 777 926 777 931 775 936 771 943 762 952 757 955
+1|Hyson Road|M683 106 688 112 703 116 740 117 761 120 765 118 774 112 806 111 816 112 836 121 856 131 870 134 874 136 877 136
+0|West Commodore Boulevard|M240 46 255 56 269 76 273 82 274 85 277 90 280 95 291 95 325 88 342 89 354 93 382 107 396 111 405 113 438 118 505 128 518 130 551 135
+1|Manhattan Street|M793 339 794 336 800 315 810 281 812 275
+1|Buckingham Drive|M853 889 855 894 858 897 868 902 870 904 872 908 871 913 869 916 866 918 846 920 842 921 837 925 834 934 832 939 831 947 828 951 823 954 812 956 806 959 800 964 794 973 790 977 788 980
+1|Don Connor Boulevard|M660 471 659 466 656 463 643 456 627 440 608 429 568 418 561 415 557 408 552 395 517 352 513 347
+1|Prospect Street|M981 577 1011 573
+1|South New Prospect Road|M948 316 949 314 949 312 944 286 945 269 940 259 931 232 928 227 914 208 904 193 893 182 889 180
+0|Pinehurst Road|M191 950 141 905 136 899 134 893 93 736 88 727 78 713 64 699 43 661 32 643 15 611 -31 527 -36 519 -42 514
+1|Chandler Road|M734 18 741 22 765 45 771 57 774 60 794 69 817 89 821 93 825 96 828 100 836 121
+1|New Central Avenue|M908 449 926 450 933 450 945 448 956 450 960 454 963 457 989 459 991 459 1009 465 1010 466 1012 470
+1|Renaissance Boulevard|M860 787 854 785 850 780 848 775 849 766 858 756 862 748 871 739 879 724 883 719 890 713 894 703 897 701 901 700 903 700 907 701 909 703 913 709 918 729 918 732 915 736 902 745 898 759 891 768 890 772
+1|Harmony Road|M727 74 735 95 737 99 739 106 739 117 733 146 741 172 743 178 743 187
+0|North County Line Road|M640 139 642 142 646 145 653 149 688 164 707 172 743 187 775 201 809 216 815 219 834 237 853 249
+0|Monmouth Road|M111 151 117 146 120 143 124 139 141 124 181 86 193 76 197 72 200 69 205 65 210 61 217 54 222 50 230 42 236 36 272 4 448 -158 478 -184
+1|Fort Plains Road|M933 -175 933 -170 930 -149 927 -143 921 -134 921 -132 924 -124 935 -103 938 -100 947 -95 948 -93 944 -64 940 -47 940 -33 933 -18 928 1 929 24 936 56 937 69 937 72 930 88 929 93 928 96 925 104 921 109
+0|Eisenhower Traffic Circle|M626 925 629 926 632 925 634 922 633 920 631 918 629 919 627 920 626 923 626 925
+1|Friendship Road|M1032 152 1014 163 1008 177 1003 195 1000 225 1003 232 1007 246
+1|Hulses Corner Road|M1020 31 999 58 984 76 979 80 955 85 930 88 920 87
+1|Northampton Boulevard|M883 983 893 1026 893 1030 890 1043
+1|Lake Street|M660 921 659 907 659 905
+1|Beacon Street|M977 931 973 937 977 952 977 953 979 961
+1|Jackson Mills Road|M713 84 715 83 721 79 727 74 761 49 763 47 764 46 768 42 770 39 776 18 798 -51
+1|Monmouth Road|M0 251 1 250 42 214 47 209 91 169 111 151
+1|Ely Harmony Road|M734 18 681 -7 655 -9 641 -7 630 -10 619 -17 610 -26 589 -45 577 -60 574 -63 556 -68 549 -74 545 -79 527 -82 511 -93 497 -95 487 -103 478 -107 457 -120 454 -120 446 -119 439 -121 433 -128 428 -139 428 -149 422 -161 421 -166
+1|Commonwealth Boulevard|M842 996 846 991 852 990 992 958 993 957 995 956 1000 949
+0|Cassville Road|M280 95 285 106 293 111 308 125 311 128 312 132 314 138 324 200 322 207 316 218 315 225 331 285 340 316 341 318 346 336 350 348 355 355 357 361 363 389
+1|White Street|M969 504 939 528
+1|Tilford Street|M760 316 765 303
+`;
+const ROADS=ROADS_TEXT.trim().split('\n').map(l=>{
+ const [c,name,p]=l.split('|');
+ const lines=p.split('M').filter(Boolean).map(sg=>{const n=sg.trim().split(/\s+/).map(Number),pts=[];for(let i=0;i+1<n.length;i+=2)pts.push([n[i],n[i+1]]);return pts});
+ // Candidate label anchors every 60 units along each line, with the local road angle.
+ const anchors=[];
+ lines.forEach(pts=>{let acc=0,next=30;for(let i=1;i<pts.length;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i],L=Math.hypot(x1-x0,y1-y0);while(L>0&&acc+L>=next){const t=(next-acc)/L;let ang=Math.atan2(y1-y0,x1-x0)*180/Math.PI;if(ang>90)ang-=180;if(ang<-90)ang+=180;anchors.push({x:x0+(x1-x0)*t,y:y0+(y1-y0)*t,ang});next+=60}acc+=L}});
+ return {c:+c,name,p:lines.map(pts=>'M'+pts.map(q=>q[0]+' '+q[1]).join(' ')).join(''),anchors};
+});
+const COLOR_A='#006EC3',COLOR_B='#D9822B';
+// Communal activist endorsements, per election (user-vetted). E = Endorsed, O = Opposed, N = Neutral.
+const ENDORSE={
+ '2022:Mayor:Michael Reina':'E','2022:Mayor:Martin Flemming Iii':'O',
+ '2022:Council:Jennifer L. Kuhn':'E','2022:Council:Scott Sargent':'E','2022:Council:Andrew Kern':'O',"2022:Council:Samara P. O'Neill":'O',
+ '2024:Council:Mordechai Burnstein':'E','2024:Council:Nino A. Borrelli':'E','2024:Council:Giuseppe A. Palmeri':'E',
+ '2024:Council:Elenor Hannum':'O','2024:Council:Eric Hannum':'O','2024:Council:Amanda Trombetta':'O','2024:Council:Hope Drew':'N',
+ '2025:Council:Alfred Couceiro':'E','2025:Council:Christopher Pollak':'O',
+ '2026:Mayor:Jennifer Kuhn':'E','2026:Mayor:Elliott Shem-Tov':'O','2026:Mayor:Brandon A. Rose':'N',
+ '2026:Council:Brian McCarron':'E',"2026:Council:John 'Pojo' Pejoski":'E','2026:Council:Christopher Pollak':'O','2026:Council:Amanda Trombetta':'O',
+ '2026:Council:Paul G. Sarti':'N','2026:Council:Casey V. Jackson':'N'};
+const END_NAME={E:'Endorsed',O:'Opposed',N:'Neutral'},COLOR_E='#01665e',COLOR_O='#8c510a',COLOR_N='#9aa5b1';
+const tagOf=k=>ENDORSE[k]?' · '+END_NAME[ENDORSE[k]]:'';
+function ramp(t,a,b){t=Math.max(0,Math.min(1,t));return 'rgb('+a.map((x,i)=>Math.round(x+(b[i]-x)*t)).join(',')+')'}
+const lastName=n=>n.split(' ').pop();
+const IDS=Object.keys(DATA),YEARS=['2022','2023','2024','2025','2026'],ALLC=Object.keys(DATA['1'].candidates),MAPW=1000,MAPH=994;
+const fmt=n=>n==null?'—':Math.round(n).toLocaleString(),pct=n=>n==null?'—':Number(n).toFixed(1)+'%',delta=n=>n==null?'—':(n>0?'+':'')+n.toFixed(1)+'%';
+const growth=(a,b)=>a!=null&&b>0?100*(a-b)/b:null;
+const cname=k=>k.split(':').slice(2).join(':'),clabel=k=>k.split(':').slice(1).join(' · ');
+function shade(v,min,max){if(v==null)return '#d5dbe2';const t=Math.max(0,Math.min(1,(v-min)/(max-min||1)));const a=[228,238,248],b=[2,65,114];return 'rgb('+a.map((x,i)=>Math.round(x+(b[i]-x)*t)).join(',')+')'}
+const FIELDS=[['district','District #'],['registered','Registered'],['ballots','Voted'],['turnout','Turnout'],['regGrowth','Reg. change'],['support','Selected metric']];
+const HEADS=[['district','District'],['registered','Registered'],['ballots','Ballots'],['turnout','Turnout'],['regGrowth','Reg. growth'],['ballotGrowth','Ballot growth'],['metric','Selected metric']];
+const METRIC_TEXT={turnout:'Turnout %',registrationGrowth:'Registration growth % vs comparison year',ballotGrowth:'Ballots cast growth % vs comparison year',growthGap:'Ballot growth − registration growth',registered:'Registered voters',ballots:'Ballots cast',candidate:'Candidate support %'};
+const DEFAULTS={year:'2026',base:'prior',showChange:false,kpiOpen:true,allLabels:true,metric:'turnout',cand:null,compare:false,second:null,fields:{district:false,registered:false,ballots:false,turnout:false,regGrowth:false,support:true},view:'map',sortKey:'metric',sortAsc:false,openId:null};
+class Component extends DCLogic {
+constructor(...args){
+ super(...args);
+ this.state=Object.assign({},DEFAULTS,{fields:Object.assign({},DEFAULTS.fields),vb:null,W:0,H:0,dragging:false});
+ this.drag=null;this.mapEl=null;this.ro=null;
+ this.setMap=el=>{
+  if(this.mapEl===el)return;
+  if(this.mapEl){this.mapEl.removeEventListener('wheel',this.onWheel);this.ro&&this.ro.disconnect()}
+  this.mapEl=el;
+  if(el){el.addEventListener('wheel',this.onWheel,{passive:false});this.ro=new ResizeObserver(()=>this.measure());this.ro.observe(el);this.measure()}
+ };
+ this.measure=()=>{const el=this.mapEl;if(!el)return;const W=el.clientWidth,H=el.clientHeight;if(!W||!H)return;if(W!==this.state.W||H!==this.state.H)this.setState({W,H,vb:this.fitVb(W,H)})};
+ this.fitVb=(W,H)=>{const pad=14,s=Math.min((W-2*pad)/MAPW,(H-2*pad)/MAPH),w=W/s,h=H/s;return {x:MAPW/2-w/2,y:MAPH/2-h/2,w,h,base:w}};
+ this.zoomAt=(f,sx,sy)=>{const {vb,W,H}=this.state;if(!vb)return;const nw=Math.max(vb.base/10,Math.min(vb.base,vb.w/f)),k=nw/vb.w,wx=vb.x+sx/W*vb.w,wy=vb.y+sy/H*vb.h;this.setState({vb:{x:wx-(sx/W)*nw,y:wy-(sy/H)*vb.h*k,w:nw,h:vb.h*k,base:vb.base}})};
+ this.onWheel=e=>{e.preventDefault();const r=this.mapEl.getBoundingClientRect();this.zoomAt(e.deltaY<0?1.25:0.8,e.clientX-r.left,e.clientY-r.top)};
+ this.onDown=e=>{if(e.button!==0||!this.state.vb)return;this.drag={x:e.clientX,y:e.clientY,vb:this.state.vb,moved:false}};
+ this.onMove=e=>{const d=this.drag;if(!d)return;const dx=e.clientX-d.x,dy=e.clientY-d.y;if(!d.moved&&Math.hypot(dx,dy)<4)return;d.moved=true;const {W,H}=this.state;this.setState({dragging:true,vb:Object.assign({},d.vb,{x:d.vb.x-dx*d.vb.w/W,y:d.vb.y-dy*d.vb.h/H})})};
+ this.onUp=()=>{const d=this.drag;if(!d)return;if(d.moved){this.setState({dragging:false});setTimeout(()=>{this.drag=null},0)}else this.drag=null};
+}
+componentDidMount(){window.addEventListener('pointermove',this.onMove);window.addEventListener('pointerup',this.onUp)}
+componentWillUnmount(){window.removeEventListener('pointermove',this.onMove);window.removeEventListener('pointerup',this.onUp);this.setMap(null)}
+renderVals(){
+ const s=this.state,year=s.year,base=(s.base&&s.base!=='prior'&&s.base!==year)?s.base:'prior',py=base==='prior'?String(Number(year)-1):base;
+ const keys=ALLC.filter(k=>k.startsWith(year+':'));
+ const cand=keys.includes(s.cand)?s.cand:keys[0];
+ const others=keys.filter(k=>k!==cand);
+ const second=others.includes(s.second)?s.second:others[0];
+ const isCand=s.metric==='candidate',cmp=isCand&&s.compare&&others.length>0;
+ const isEnd=s.metric==='endorse';
+ const offices=['Mayor','Council'].filter(o=>ALLC.some(k=>k.startsWith(year+':'+o+':')&&ENDORSE[k]));
+ const office=offices.includes(s.office)?s.office:offices[0];
+ const endKeys=office?ALLC.filter(k=>k.startsWith(year+':'+office+':')):[];
+ // Shares of all votes cast for the office (write-ins excluded). Council races are vote-for-2 or vote-for-3.
+ const exN=!!s.excludeNeutral; // leave neutral candidates' votes out of the shares
+ const END_YEARS=['2022','2024','2025','2026'];
+ const racesOf=y=>['Mayor','Council'].filter(o=>ALLC.some(k=>k.startsWith(y+':'+o+':')&&ENDORSE[k]));
+ const endOfR=(id,y,off)=>{if(!y||!off)return null;let e=0,o=0,n=0;ALLC.forEach(k=>{if(!k.startsWith(y+':'+off+':'))return;const c=DATA[id].candidates[k];if(!c)return;const g=ENDORSE[k]||'N';if(g==='E')e+=c.votes;else if(g==='O')o+=c.votes;else n+=c.votes});if(exN)n=0;const t=e+o+n;return t?{e:100*e/t,o:100*o/t,n:100*n/t,m:100*(e-o)/t,hasN:n>0,ev:e,ov:o,nv:n}:null};
+ const prevEndYear=END_YEARS.filter(y=>y<year).pop();
+ const eBase=(s.base&&s.base!=='prior'&&s.base!==year&&END_YEARS.includes(s.base))?s.base:prevEndYear;
+ const eBaseOffice=eBase?(racesOf(eBase).includes(office)?office:racesOf(eBase)[0]):null;
+ // Year-over-year: change in the endorsed margin (endorsed share minus opposed share) between two elections.
+ const chgEnd=isEnd&&!!s.showChange&&!!eBase&&!!office;
+ const endOf=id=>{let e=0,o=0,n=0;endKeys.forEach(k=>{const c=DATA[id].candidates[k];if(!c)return;const g=ENDORSE[k]||'N';if(g==='E')e+=c.votes;else if(g==='O')o+=c.votes;else n+=c.votes});if(exN)n=0;const t=e+o+n;return t?{e:100*e/t,o:100*o/t,n:100*n/t,m:100*(e-o)/t,hasN:n>0,ev:e,ov:o,nv:n}:null};
+ const LEVEL=['turnout','registered','ballots','candidate'],isLevel=LEVEL.includes(s.metric),hasBase=!!DATA['1'].years[py];
+ // "Change" mode: compare the selected metric between the election year and the comparison year.
+ const chg=!!s.showChange&&isLevel&&hasBase&&!cmp;
+ const baseCand=cand?cand.replace(/^\d{4}:/,py+':'):null;
+ const cur=id=>DATA[id].years[year],pri=id=>DATA[id].years[py]||null;
+ const levelOf=(id,y,k)=>{const d=DATA[id].years[y];if(!d)return null;const m=s.metric;if(m==='candidate'){const c=DATA[id].candidates[k];return c?c.pct:null}return d[m]};
+ const metric=id=>{if(chgEnd){const a=endOfR(id,year,office),b=endOfR(id,eBase,eBaseOffice);return a&&b?a.m-b.m:null}if(chg){const a=levelOf(id,year,cand),b=levelOf(id,py,baseCand);if(a==null||b==null)return null;return ['registered','ballots'].includes(s.metric)?growth(a,b):a-b}return metric0(id)};
+ const metric0=id=>{if(s.metric==='endorse'){const r=endOf(id);return r?r.m:null}const c=cur(id),p=pri(id),m=s.metric;const rg=growth(c.registered,p&&p.registered),bg=growth(c.ballots,p&&p.ballots);
+  return {turnout:c.turnout,registered:c.registered,ballots:c.ballots,registrationGrowth:rg,ballotGrowth:bg,growthGap:bg==null||rg==null?null:bg-rg,candidate:DATA[id].candidates[cand]?DATA[id].candidates[cand].pct:null}[m]};
+ const pts=v=>(v>0?'+':'')+v.toFixed(1)+' pts';
+ const lvlText=v=>v==null?'—':['turnout','candidate'].includes(s.metric)?pct(v):fmt(v);
+ const asText=v=>v==null?'—':chgEnd?'Margin change '+(v>=0?'+':'−')+Math.abs(v).toFixed(1)+' pts':isEnd?'Endorsed margin '+(v>=0?'+':'−')+Math.abs(v).toFixed(1)+' pts':chg?(['registered','ballots'].includes(s.metric)?delta(v):pts(v)):['turnout','candidate'].includes(s.metric)?pct(v):['registrationGrowth','ballotGrowth','growthGap'].includes(s.metric)?delta(v):fmt(v);
+ const open=id=>()=>{if(this.drag&&this.drag.moved)return;this.setState({openId:id})};
+ // KPIs
+ let reg=0,bal=0,old=0;IDS.forEach(id=>{reg+=cur(id).registered;bal+=cur(id).ballots;old+=(pri(id)&&pri(id).registered)||0});
+ // Head-to-head (two candidates): who won each district and by what margin.
+ const pc=(id,k)=>DATA[id].candidates[k]?DATA[id].candidates[k].pct:null;
+ const nameA=cand?lastName(cname(cand)):'',nameB=second?lastName(cname(second)):'';
+ let h2h=null,maxLead=1;
+ if(cmp&&cand&&second){
+  let va=0,vb2=0,bt=0,wa=0,wb=0;
+  IDS.forEach(id=>{const A=DATA[id].candidates[cand],B=DATA[id].candidates[second];va+=A?A.votes:0;vb2+=B?B.votes:0;bt+=cur(id).ballots;const m=(pc(id,cand)||0)-(pc(id,second)||0);if(m>0)wa++;else if(m<0)wb++;maxLead=Math.max(maxLead,Math.abs(m))});
+  const pa=100*va/bt,pb=100*vb2/bt,scale=Math.max(100,pa+pb);
+  h2h={aName:cname(cand),bName:cname(second),aPct:pct(pa),bPct:pct(pb),aWins:wa,bWins:wb,aBar:{width:(100*pa/scale)+'%',background:COLOR_A},bBar:{width:(100*pb/scale)+'%',background:COLOR_B}};
+ }
+ let trend=null;
+ if(isEnd){
+  const rows=[];END_YEARS.forEach(y=>racesOf(y).forEach(off=>{let e=0,o=0,n=0,we=0;IDS.forEach(id=>{const r=endOfR(id,y,off);if(!r)return;e+=r.ev;o+=r.ov;n+=r.nv;if(r.m>0)we++});if(exN)n=0;const t=e+o+n||1;rows.push({y,off,e:100*e/t,o:100*o/t,n:100*n/t,lead:100*(e-o)/t,we})}));
+  trend=rows.map((r,i)=>{const prev=rows.slice(0,i).reverse().find(q=>q.off===r.off)||rows[i-1];const d=prev?r.lead-prev.lead:null;
+   return {label:r.y+' · '+r.off,e:'Endorsed '+pct(r.e),o:'Opposed '+pct(r.o),lead:'Margin '+(r.lead>=0?'+':'−')+Math.abs(r.lead).toFixed(1),leadCls:'tr-lead '+(r.lead>=0?'pos':'neg'),
+    chg:d==null?'First race':(d>=0?'+':'−')+Math.abs(d).toFixed(1)+' vs '+prev.y+(prev.off!==r.off?' '+prev.off:''),chgCls:'tr-chg '+(d==null?'':d>=0?'pos':'neg'),
+    wins:'Won '+r.we+' of 34',cls:'trow'+(r.y===year&&r.off===office?' on':''),
+    eBar:{width:r.e+'%',background:COLOR_E},nBar:{width:r.n+'%',background:COLOR_N},oBar:{width:r.o+'%',background:COLOR_O},
+    go:()=>this.setState({metric:'endorse',year:r.y,office:r.off})}});
+ }
+ if(false){
+  let e=0,o=0,n=0,we=0,wo=0;IDS.forEach(id=>{const r=endOf(id);if(!r)return;e+=r.ev;o+=r.ov;n+=r.nv;if(r.m>0)we++;else if(r.m<0)wo++});
+  const t=e+o+n||1;
+  h2h={aName:'Endorsed slate',bName:'Opposed slate',aPct:pct(100*e/t),bPct:pct(100*o/t),aWins:we,bWins:wo,aSw:{background:COLOR_E},bSw:{background:COLOR_O},
+   aBar:{width:(100*e/t)+'%',background:COLOR_E},bBar:{width:(100*o/t)+'%',background:COLOR_O},
+   note:'Share of all votes cast for '+office.toLowerCase()+', all 34 districts'+(n?' · Neutral '+pct(100*n/t):''),lead:''};
+ }else if(h2h){h2h.aSw={background:COLOR_A};h2h.bSw={background:COLOR_B};h2h.note='Share of ballots cast, all 34 districts';h2h.lead='Color shows who won the district; darker = bigger margin.'}
+ const END_BINS=[[-1e9,'#8c510a'],[-20,'#bf812d'],[-10,'#dfc27d'],[-3,'#ececec'],[3,'#80cdc1'],[10,'#35978f'],[20,'#01665e']];
+ const endFill=v=>{if(v==null)return '#d5dbe2';let c=END_BINS[0][1];END_BINS.forEach(b=>{if(v>=b[0])c=b[1]});return c};
+ const END_LEG=chgEnd?['−20 or less','−20 to −10','−10 to −3','−3 to +3','+3 to +10','+10 to +20','+20 or more']:['−20 or less','−20 to −10','−10 to −3','−3 to +3','+3 to +10','+10 to +20','+20 or more'];
+ const endLegend=END_BINS.map((b,i)=>({t:END_LEG[i],sw:{background:b[1]}}));
+ const endTip=id=>{if(chgEnd){const v=metric(id);return v==null?'no comparison':'Endorsed margin '+(v>=0?'up ':'down ')+Math.abs(v).toFixed(1)+' pts vs '+eBase}const r=endOf(id);return r?'Endorsed '+pct(r.e)+' · Opposed '+pct(r.o)+(r.hasN?' · Neutral '+pct(r.n):''):'no race'};
+ const h2hFill=id=>{const m=(pc(id,cand)||0)-(pc(id,second)||0),t=0.18+0.82*Math.abs(m)/maxLead;if(Math.abs(m)<0.05)return '#d5dbe2';return m>0?ramp(t,[228,238,248],[0,78,140]):ramp(t,[252,238,224],[168,86,16])};
+ const h2hTip=id=>nameA+' '+pct(pc(id,cand))+' vs '+nameB+' '+pct(pc(id,second));
+ const absMax=Math.max(0.1,...IDS.map(metric).filter(v=>v!=null).map(Math.abs));
+ const divFill=v=>v==null?'#d5dbe2':Math.abs(v)<0.05?'#eef1f4':v>0?ramp(0.15+0.85*v/absMax,[228,238,248],[2,65,114]):ramp(0.15+0.85*-v/absMax,[252,238,224],[168,86,16]);
+ // Map
+ const vals=IDS.map(metric).filter(v=>v!=null),min=Math.min(...vals),max=Math.max(...vals);
+ const shapes=Object.keys(GEO).map(id=>{const known=!!DATA[id],v=known?metric(id):null;return {p:GEO[id].p,fill:known?(isEnd?endFill(v):cmp?h2hFill(id):chg?divFill(v):shade(v,min,max)):'#ccc',tip:'District '+id+(known?' · '+(isEnd?endTip(id):cmp?h2hTip(id):asText(v)):''),open:known?open(id):null,key:e=>{if(known&&(e.key==='Enter'||e.key===' ')){e.preventDefault();this.setState({openId:id})}}}});
+ const labels=[],roadLabels=[],leaders=[];const vb=s.vb;
+ // Who is on each side, shown in a key on the map.
+ const namesOf=g=>endKeys.filter(k=>(ENDORSE[k]||'N')===g).map(cname).join(', ');
+ let nameKey=null;
+ if(isEnd&&office){nameKey=[{sw:{background:COLOR_E},t:'Endorsed: '+namesOf('E')},{sw:{background:COLOR_O},t:'Opposed: '+namesOf('O')}];if(namesOf('N')&&!exN)nameKey.push({sw:{background:COLOR_N},t:'Neutral: '+namesOf('N')});if(chgEnd)nameKey.push({sw:{background:'transparent'},t:'Compared with '+eBase+(eBaseOffice!==office?' '+eBaseOffice:'')})}
+ else if(cmp&&second)nameKey=[{sw:{background:COLOR_A},t:cname(cand)},{sw:{background:COLOR_B},t:cname(second)}];
+ const FIELD_NAMES={district:'district #',registered:'registered',ballots:'voted',turnout:'turnout',regGrowth:'reg. change'};
+ const mainName=cmp?'margin (pts), '+nameA+' minus '+nameB:chgEnd?'change in endorsed margin (pts)':isEnd?'endorsed margin (pts)':chg?'change':'value';
+ const labelKey='Labels: '+[s.fields.support?mainName:null].concat(Object.keys(FIELD_NAMES).filter(k=>s.fields[k]).map(k=>FIELD_NAMES[k])).filter(Boolean).join(' · ');
+ const roads=ROADS.map(r=>({cls:'road'+r.c,p:r.p}));
+ if(s.view==='map'&&vb&&s.W){
+  const f=s.fields,all=s.allLabels;
+  // Each label is one row: the main number first (bold), then any extra fields, small. The legend line names the order.
+  const kfmt=v=>v>=1000?(v/1000).toFixed(1)+'k':String(Math.round(v));
+  const occ=[],items=[];
+  // Keep labels off the candidate key in the top-left corner.
+  const keyBox=nameKey?{left:0,top:0,right:330,bottom:22*nameKey.length+26}:null;
+  const hitKey=r=>keyBox&&!(r.right<keyBox.left||r.left>keyBox.right||r.bottom<keyBox.top||r.top>keyBox.bottom);
+  Object.keys(GEO).filter(id=>DATA[id]).sort((a,b)=>GEO[b].a-GEO[a].a).forEach(id=>{
+   const x=(GEO[id].x-vb.x)/vb.w*s.W,y=(GEO[id].y-vb.y)/vb.h*s.H;
+   const d=cur(id),lines=[];
+   if(f.support){
+    if(cmp){const A=pc(id,cand)||0,B=pc(id,second)||0;lines.push({cls:'lead '+(A>=B?'la':'lb'),text:(A>=B?'+':'−')+Math.round(Math.abs(A-B))})}
+    else if(chgEnd){const v=metric(id);lines.push({cls:'lead '+(v==null?'':v>=0?'le':'lo'),text:v==null?'—':(v>=0?'+':'−')+Math.round(Math.abs(v))})}
+    else if(isEnd){const q=endOf(id);lines.push(q?{cls:'lead '+(q.m>=0?'le':'lo'),text:(q.m>=0?'+':'−')+Math.round(Math.abs(q.m))}:{cls:'sub',text:'no race'})}
+    else if(chg){const v=metric(id);lines.push({cls:'lead',text:v==null?'—':(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(1)})}
+    else lines.push({cls:'lead',text:asText(metric(id))});
+   }
+   if(f.district)lines.push({cls:'sub',text:'#'+id});
+   if(f.registered)lines.push({cls:'sub',text:kfmt(d.registered)});
+   if(f.ballots)lines.push({cls:'sub',text:kfmt(d.ballots)});
+   if(f.turnout)lines.push({cls:'sub',text:Math.round(d.turnout)+'%'});
+   if(f.regGrowth){const g=growth(d.registered,pri(id)&&pri(id).registered);lines.push({cls:'sub',text:g==null?'—':(g>0?'+':'')+g.toFixed(1)+'%'})}
+   if(!lines.length)return;
+   const w=Math.round(lines.reduce((t,l)=>t+l.text.length*(l.cls.startsWith('lead')?7.6:6.4),0)+(lines.length-1)*6+14),h=all?22:24;
+   const r={left:x-w/2-4,right:x+w/2+4,top:y-h/2-4,bottom:y+h/2+4};
+   if(all){if(x<0||y<0||x>s.W||y>s.H)return;items.push({ax:x,ay:y,x,y,w,h,lines});return}
+   if(r.left<0||r.top<0||r.right>s.W-56||r.bottom>s.H-26||hitKey(r))return;
+   if(occ.some(o=>!(r.right<o.left||r.left>o.right||r.bottom<o.top||r.top>o.bottom)))return;
+   occ.push(r);labels.push({cls:'maptip row',style:{left:(x-w/2)+'px',top:(y-h/2)+'px',width:w+'px'},lines});
+  });
+  if(all){
+   // Push overlapping labels apart along the shorter overlap, with a weak pull back toward their district.
+   const gap=4;
+   for(let it=0;it<300;it++){
+    let moved=false;
+    for(let i=0;i<items.length;i++)for(let j=i+1;j<items.length;j++){
+     const a=items[i],b=items[j],ox=(a.w+b.w)/2+gap-Math.abs(a.x-b.x),oy=(a.h+b.h)/2+gap-Math.abs(a.y-b.y);
+     if(ox<=0||oy<=0)continue;moved=true;
+     if(ox<oy){const d=(a.x<=b.x?-1:1)*ox/2;a.x+=d;b.x-=d}
+     else{const d=(a.y<b.y?-1:a.y>b.y?1:(i%2?1:-1))*oy/2;a.y+=d;b.y-=d}
+    }
+    items.forEach(p=>{
+     if(it<200){p.x+=(p.ax-p.x)*0.03;p.y+=(p.ay-p.y)*0.03}
+     if(keyBox){const ox=keyBox.right-(p.x-p.w/2)+3,oy=keyBox.bottom-(p.y-p.h/2)+3;if(ox>0&&oy>0){if(ox<oy)p.x+=ox;else p.y+=oy}}
+     p.x=Math.max(p.w/2+4,Math.min(s.W-60-p.w/2,p.x));p.y=Math.max(p.h/2+4,Math.min(s.H-p.h/2-30,p.y));
+    });
+    if(!moved&&it>20)break;
+   }
+   items.forEach(p=>{
+    occ.push({left:p.x-p.w/2-3,right:p.x+p.w/2+3,top:p.y-p.h/2-3,bottom:p.y+p.h/2+3});
+    labels.push({cls:'maptip compact row',style:{left:(p.x-p.w/2)+'px',top:(p.y-p.h/2)+'px',width:p.w+'px'},lines:p.lines});
+    if(Math.abs(p.x-p.ax)>p.w/2-6||Math.abs(p.y-p.ay)>p.h/2-4)leaders.push({x1:p.ax.toFixed(1),y1:p.ay.toFixed(1),x2:p.x.toFixed(1),y2:p.y.toFixed(1)});
+   });
+  }
+  if(keyBox)occ.push(keyBox);
+  // Street names appear as you zoom in: main roads first, then secondary roads.
+  const z=vb.base/vb.w;
+  ROADS.filter(rd=>(rd.c===0&&z>=1.6)||(rd.c===1&&z>=2.6)).sort((a,b)=>a.c-b.c).forEach(rd=>{
+   let placed=0;const maxPer=z>=5?3:z>=3.5?2:1,mine=[];
+   for(const an of rd.anchors){
+    if(placed>=maxPer)break;
+    const x=(an.x-vb.x)/vb.w*s.W,y=(an.y-vb.y)/vb.h*s.H;
+    const w=rd.name.length*6.4+8,h=15,rad=an.ang*Math.PI/180,bw2=Math.abs(w*Math.cos(rad))+Math.abs(h*Math.sin(rad)),bh2=Math.abs(w*Math.sin(rad))+Math.abs(h*Math.cos(rad));
+    const r={left:x-bw2/2,right:x+bw2/2,top:y-bh2/2,bottom:y+bh2/2};
+    if(r.left<4||r.top<4||r.right>s.W-56||r.bottom>s.H-28)continue;
+    if(mine.some(m=>Math.hypot(m.x-x,m.y-y)<260))continue;
+    if(occ.some(o=>!(r.right<o.left||r.left>o.right||r.bottom<o.top||r.top>o.bottom)))continue;
+    occ.push(r);mine.push({x,y});placed++;
+    roadLabels.push({text:rd.name,style:{left:(x-w/2)+'px',top:(y-h/2)+'px',width:w+'px',textAlign:'center',transform:'rotate('+an.ang.toFixed(1)+'deg)'}});
+   }
+  });
+ }
+ // Table
+ const rowVals=id=>({district:+id,registered:cur(id).registered,ballots:cur(id).ballots,turnout:cur(id).turnout,regGrowth:growth(cur(id).registered,pri(id)&&pri(id).registered),ballotGrowth:growth(cur(id).ballots,pri(id)&&pri(id).ballots),metric:metric(id)});
+ const sorted=IDS.slice().sort((a,b)=>{const x=rowVals(a)[s.sortKey],y=rowVals(b)[s.sortKey];return x==null?1:y==null?-1:(s.sortAsc?1:-1)*(x-y)});
+ const rows=sorted.map(id=>{const v=rowVals(id);return {id,baseVal:lvlText(levelOf(id,py,baseCand)),registered:fmt(v.registered),ballots:fmt(v.ballots),turnout:pct(v.turnout),regGrowth:delta(v.regGrowth),ballotGrowth:delta(v.ballotGrowth),metric:asText(v.metric),second:pct(DATA[id].candidates[second]&&DATA[id].candidates[second].pct),open:()=>this.setState({openId:id})}});
+ const heads=HEADS.map(([k,l])=>({label:k==='metric'&&chgEnd?'Margin change vs '+eBase:k==='metric'&&isEnd?'Endorsed margin':k==='metric'&&chg?'Change vs '+py:l,sort:()=>this.setState(k===s.sortKey?{sortAsc:!s.sortAsc}:{sortKey:k,sortAsc:false})}));
+ if(cmp)heads.push({label:'Second candidate',sort:()=>{}});
+ if(chg)heads.push({label:'Value in '+py,sort:()=>{}});
+ // Drawer
+ const oid=s.openId;
+ const drawerEnd=oid?END_YEARS.flatMap(y=>racesOf(y).map(off=>{const r=endOfR(oid,y,off);return {label:y+' · '+off,value:r?'Endorsed '+pct(r.e)+' · Opposed '+pct(r.o):'—',lead:r?'Margin '+(r.m>=0?'+':'−')+Math.abs(r.m).toFixed(1):'',st:{color:r&&r.m>=0?COLOR_E:COLOR_O}}})).reverse():[];
+ const drawerYears=oid?YEARS.slice().reverse().map(y=>{const d=DATA[oid].years[y],p=DATA[oid].years[String(Number(y)-1)];return {year:y,open:y===year,turnout:pct(d.turnout),registered:fmt(d.registered),ballots:fmt(d.ballots),regChange:delta(growth(d.registered,p&&p.registered)),cands:Object.entries(DATA[oid].candidates).filter(([k])=>k.startsWith(y+':')).map(([k,c])=>({label:clabel(k)+tagOf(k),value:fmt(c.votes)+' · '+pct(c.pct)}))}}):[];
+ return {
+  year,metric:s.metric,cand,second,compare:!!s.compare,isCand,
+  candOptions:keys.map(k=>({v:k,t:clabel(k)+tagOf(k)})),secondOptions:others.map(k=>({v:k,t:cname(k)+tagOf(k)})),
+  onYear:e=>this.setState({year:e.target.value}),onMetric:e=>this.setState({metric:e.target.value}),
+  onCand:e=>this.setState({cand:e.target.value}),onSecond:e=>this.setState({second:e.target.value}),
+  onCompare:e=>this.setState({compare:e.target.checked}),
+  onReset:()=>this.setState(Object.assign({},DEFAULTS,{fields:Object.assign({},DEFAULTS.fields),vb:s.W?this.fitVb(s.W,s.H):null})),
+  mapPressed:String(s.view==='map'),tablePressed:String(s.view==='table'),
+  showMap:()=>this.setState({view:'map'}),showTable:()=>this.setState({view:'table'}),
+  isMap:s.view==='map',isTable:s.view==='table',
+  kreg:fmt(reg),kballots:fmt(bal),kturnout:pct(100*bal/reg),kgrowth:DATA['1'].years[py]?delta(growth(reg,old)):'—',baseLabel:DATA['1'].years[py]?py:'n/a',base:isEnd?(eBase&&eBase!==prevEndYear?eBase:'prior'):base,onBase:e=>this.setState({base:e.target.value}),
+  baseOptions:isEnd?[{v:'prior',t:'Previous election'+(prevEndYear?' ('+prevEndYear+')':' (none)')}].concat(END_YEARS.filter(y=>y!==year).slice().reverse().map(y=>({v:y,t:y}))):[{v:'prior',t:'Prior year'+(DATA['1'].years[String(Number(year)-1)]?' ('+(Number(year)-1)+')':' (none)')}].concat(YEARS.filter(y=>y!==year).slice().reverse().map(y=>({v:y,t:y}))),
+  viewTitle:chgEnd?'Endorsed margin · change '+eBase+(eBaseOffice!==office?' '+eBaseOffice:'')+' → '+year+' '+office:isEnd?'Communal activist endorsements · '+(office?office+' '+year:year+' (no endorsement data)'):METRIC_TEXT[s.metric]+(chg?' · change '+py+' → '+year:' · '+year+(['registrationGrowth','ballotGrowth','growthGap'].includes(s.metric)?' vs '+(hasBase?py:'n/a'):'')),
+  isLevel,chg,trend,endLegend,chgEnd,nameKey,labelKey,endLegendTitle:chgEnd?'Change in endorsed margin (pts):':'Endorsed margin (pts):',inclNeutral:!exN,toggleNeutral:e=>this.setState({excludeNeutral:!e.target.checked}),showTrend:isEnd&&!!s.trendOpen,trendPressed:String(!!s.trendOpen),trendBtn:s.trendOpen?'Hide election history':'Show election history',toggleTrend:()=>this.setState({trendOpen:!s.trendOpen}),showChangeOpt:(isLevel&&!cmp)||isEnd,showBase:chg||chgEnd||(!isLevel&&!isEnd),isEnd,showOffice:isEnd&&offices.length>1,office:office||'',officeOptions:offices.map(v=>({v})),onOffice:e=>this.setState({office:e.target.value}),
+  endCouncilNote:isEnd&&office==='Council'?'; council is vote-for-'+({'2022':2,'2024':3,'2025':1,'2026':2}[year]||'N')+', so each voter can count more than once':'',baseStep:isLevel?'4':'3',valuesPressed:String(!(chg||chgEnd)),changePressed:String(chg||chgEnd),changeUnit:['registered','ballots'].includes(s.metric)?'% change':'points',changeLabel:'Change vs '+(hasBase?py:'n/a'),
+  showValues:()=>this.setState({showChange:false}),showChangeMode:()=>(hasBase||isEnd)&&this.setState({showChange:true}),
+  kpiOpen:s.kpiOpen!==false,kpiBtn:s.kpiOpen===false?'Show summary':'Hide summary',toggleKpi:()=>this.setState({kpiOpen:s.kpiOpen===false}),
+  fieldList:FIELDS.map(([k,l])=>({label:l,on:!!s.fields[k],toggle:e=>this.setState({fields:Object.assign({},s.fields,{[k]:e.target.checked})})})),
+  mapClass:'mapbox'+(s.dragging?' dragging':''),setMap:this.setMap,onDown:this.onDown,stop:e=>e.stopPropagation(),
+  viewBox:vb?[vb.x,vb.y,vb.w,vb.h].map(n=>n.toFixed(2)).join(' '):'0 0 1000 994',
+  shapes,labels,roads,roadLabels,h2h,leaders,allLabels:!!s.allLabels,noAll:!s.allLabels,
+  toggleAll:e=>this.setState({allLabels:e.target.checked}),
+  zoomIn:()=>this.zoomAt(1.4,s.W/2,s.H/2),zoomOut:()=>this.zoomAt(1/1.4,s.W/2,s.H/2),fit:()=>s.W&&this.setState({vb:this.fitVb(s.W,s.H)}),
+  heads,rows,showSecondCol:cmp,showBaseCol:chg,
+  drawerOpen:!!oid,drawerEnd,openId:oid||'',drawerYears,closeDrawer:()=>this.setState({openId:null})
+ };
+}
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script>/* Minimal standalone renderer for the DataSense map pages.
+ * Reads the page template (<script type="text/x-dc-template">) and the logic class
+ * (<script type="text/x-dc-logic">), and renders them with React.
+ * Supports: {{path}} holes, <sc-if value>, <sc-for list as>, on* events, ref, style strings/objects. */
+(function () {
+  'use strict';
+  var h = React.createElement;
+  var ATTR = { 'class': 'className', 'for': 'htmlFor', tabindex: 'tabIndex', readonly: 'readOnly', maxlength: 'maxLength', colspan: 'colSpan', rowspan: 'rowSpan' };
+  var EVENTS = { onclick: 'onClick', onchange: 'onChange', oninput: 'onInput', onkeydown: 'onKeyDown', onkeyup: 'onKeyUp', onpointerdown: 'onPointerDown', onpointerup: 'onPointerUp', onpointermove: 'onPointerMove', onmouseenter: 'onMouseEnter', onmouseleave: 'onMouseLeave', onfocus: 'onFocus', onblur: 'onBlur', onsubmit: 'onSubmit', onwheel: 'onWheel' };
+  var NO_TEXT = { table: 1, thead: 1, tbody: 1, tfoot: 1, tr: 1, select: 1, svg: 1, g: 1, ul: 1, ol: 1 };
+  var FULL = /^\s*\{\{\s*([^}]+?)\s*\}\}\s*$/, ANY = /\{\{\s*([^}]+?)\s*\}\}/g;
+
+  function lookup(scope, path) {
+    path = path.trim();
+    if (path === 'true') return true; if (path === 'false') return false; if (path === 'null') return null;
+    if (/^-?\d+(\.\d+)?$/.test(path)) return Number(path);
+    var parts = path.split('.'), v;
+    for (var i = scope.length - 1; i >= 0; i--) { if (scope[i] && parts[0] in Object(scope[i])) { v = scope[i][parts[0]]; break; } }
+    for (var j = 1; j < parts.length && v != null; j++) v = v[parts[j]];
+    return v;
+  }
+  function interp(str, scope) {
+    var m = FULL.exec(str);
+    if (m) return lookup(scope, m[1]);
+    return str.replace(ANY, function (_, p) { var v = lookup(scope, p); return v == null ? '' : String(v); });
+  }
+  function styleObj(v) {
+    if (v == null || typeof v === 'object') return v;
+    var o = {};
+    String(v).split(';').forEach(function (d) {
+      var i = d.indexOf(':'); if (i < 0) return;
+      var k = d.slice(0, i).trim(), val = d.slice(i + 1).trim(); if (!k) return;
+      if (k.indexOf('--') !== 0) k = k.replace(/-([a-z])/g, function (_, c) { return c.toUpperCase(); });
+      o[k] = val;
+    });
+    return o;
+  }
+  function kids(node, scope) {
+    var out = [], ch = node.content ? node.content.childNodes : node.childNodes;
+    for (var i = 0; i < ch.length; i++) {
+      var r = build(ch[i], scope, node);
+      if (Array.isArray(r)) out.push.apply(out, r); else if (r != null && r !== false) out.push(r);
+    }
+    return out;
+  }
+  function build(node, scope, parent) {
+    if (node.nodeType === 3) {
+      var t = node.nodeValue;
+      if (!t.trim()) { var pn = parent && (parent.localName || '').toLowerCase(); return NO_TEXT[pn] ? null : (t.length ? ' ' : null); }
+      var v = interp(t, scope);
+      return v == null ? '' : (typeof v === 'object' ? '' : String(v));
+    }
+    if (node.nodeType !== 1) return null;
+    var tag = node.localName;
+    var sc = node.getAttribute && node.getAttribute('data-sc');
+    if (sc === 'if') {
+      return interp(node.getAttribute('value') || '', scope) ? kids(node, scope) : null;
+    }
+    if (sc === 'for') {
+      var list = interp(node.getAttribute('list') || '', scope) || [], as = node.getAttribute('as') || 'item';
+      return list.map(function (it, idx) { var sc2 = {}; sc2[as] = it; sc2.$index = idx; return h(React.Fragment, { key: idx }, kids(node, scope.concat([sc2]))); });
+    }
+    var props = {};
+    for (var i = 0; i < node.attributes.length; i++) {
+      var a = node.attributes[i], name = a.name, raw = a.value;
+      if (name.indexOf('hint-') === 0) continue;
+      var val = interp(raw, scope);
+      if (EVENTS[name]) { if (typeof val === 'function') props[EVENTS[name]] = val; continue; }
+      if (name === 'ref') { if (typeof val === 'function') props.ref = val; continue; }
+      if (name === 'style') { props.style = styleObj(val); continue; }
+      name = ATTR[name] || name;
+      if ((name === 'checked' || name === 'open' || name === 'hidden' || name === 'disabled' || name === 'selected')) { props[name] = !!val; continue; }
+      if (val === undefined) continue;
+      props[name] = val;
+    }
+    if (tag === 'input' && 'checked' in props && !props.onChange) props.readOnly = true;
+    if (tag === 'select' && 'value' in props && !props.onChange) props.readOnly = true;
+    var VOID = { br: 1, img: 1, input: 1, hr: 1, meta: 1, link: 1, area: 1, col: 1, source: 1 };
+    return VOID[tag] ? h(tag, props) : h.apply(null, [tag, props].concat(kids(node, scope)));
+  }
+
+  function prepare(src) {
+    // <template> survives inside <select>, <tbody>, <tr> and <svg>, where unknown tags would be moved or dropped.
+    src = src.replace(/<sc-(if|for)\b/g, '<template data-sc="$1"').replace(/<\/sc-(if|for)>/g, '</template>');
+    var doc = new DOMParser().parseFromString('<!doctype html><body>' + src + '</body>', 'text/html');
+    return doc.body;
+  }
+
+  window.mountDC = function (opts) {
+    var root = prepare(document.getElementById(opts.template).textContent);
+    var logic = document.getElementById(opts.logic).textContent;
+    var DCLogic = function (props) { React.Component.call(this, props); };
+    DCLogic.prototype = Object.create(React.Component.prototype);
+    DCLogic.prototype.constructor = DCLogic;
+    DCLogic.prototype.render = function () { return h(React.Fragment, null, kids(root, [this.renderVals()])); };
+    var Component = new Function('DCLogic', 'React', logic + '\n;return Component;')(DCLogic, React);
+    ReactDOM.createRoot(document.getElementById(opts.mount)).render(h(Component, opts.props || {}));
+  };
+})();
+</script>
+<script>mountDC({template:'tpl',logic:'logic',mount:'app',props:{}});</script>
+</body>
+</html>
